@@ -78,7 +78,7 @@
             background: #d1e3fa; border-radius: 4px 4px 8px 8px;
             cursor: pointer; transition: all 0.2s; position: relative;
             border: 2px solid #a6c8ff; border-top: none;
-            opacity: 0.5; /* Dimmed */
+            opacity: 0.5;
         }
         .water-glass::before { content:''; position:absolute; top:0; left:0; width:100%; height:3px; background:rgba(0,0,0,0.1); }
         .water-glass.filled { background: #007aff; border-color: #005bb5; opacity: 1; }
@@ -145,7 +145,7 @@
             max-height: 90vh; overflow-y: auto;
         }
         .modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: #1c1c1e; }
-        .modal-text { font-size: 0.85rem; color: #444; line-height: 1.5; text-align: left; margin-bottom: 20px; }
+        .modal-text { font-size: 0.9rem; color: #444; line-height: 1.5; text-align: left; margin-bottom: 20px; }
         .modal-btn {
             background: #007aff; color: white; border: none; width: 100%;
             padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer;
@@ -192,14 +192,28 @@
 
 <div id="rewardModal" class="modal-overlay">
     <div class="modal-box">
-        <div class="modal-title">🎉 Complimenti!</div>
+        <div class="modal-title" id="rewardTitle">🎉 Complimenti!</div>
         <div class="modal-text" style="text-align:center;">
-            Hai completato la tua <b>Sfida 7 Giorni</b>!<br><br>
-            La costanza ti ha premiato.<br>Ecco un regalo per te da usare su <b>Pharmo.it</b>:
-            <span class="reward-code" onclick="copyCode()">PHARMOAPP</span>
+            <span id="rewardMsg">Hai raggiunto un nuovo livello!</span><br><br>
+            Ecco il tuo premio per <b>Pharmo.it</b>:
+            <span class="reward-code" onclick="copyCode(this)" id="rewardCodeDisplay">...</span>
             <small style="color:#888;">Clicca il codice per copiarlo</small>
         </div>
-        <button class="modal-btn" onclick="closeReward()">Riscatta Ora</button>
+        <button class="modal-btn" onclick="closeReward('rewardModal')">Riscatta Ora</button>
+    </div>
+</div>
+
+<div id="waterRewardModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title">💧 Campione di Idratazione!</div>
+        <div class="modal-text" style="text-align:center;">
+            Hai bevuto correttamente per <b>3 giorni consecutivi</b>!<br>
+            La tua pelle e i tuoi muscoli ringraziano.<br><br>
+            Ecco un premio speciale per i drenanti:
+            <span class="reward-code" onclick="copyCode(this)">PHARMOSPED</span>
+            <small style="color:#888;">Clicca il codice per copiarlo</small>
+        </div>
+        <button class="modal-btn" onclick="closeReward('waterRewardModal')">Riscatta Ora</button>
     </div>
 </div>
 
@@ -370,10 +384,11 @@
         }
     }
 
-    // --- STREAK & REWARD LOGIC (7 DAYS) ---
+    // --- STREAK & REWARD LOGIC (APP: 7, 14, 30 DAYS) ---
     let streakCount = parseInt(localStorage.getItem('streak_days')) || 1;
     let lastVisitDate = localStorage.getItem('last_visit_date');
 
+    // Update streak Logic
     if (lastVisitDate !== todayStr) {
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
@@ -387,26 +402,84 @@
         localStorage.setItem('last_visit_date', todayStr);
     }
 
-    document.getElementById('streakDisplay').innerText = `🔥 ${streakCount}/7`;
+    document.getElementById('streakDisplay').innerText = `🔥 ${streakCount}gg`;
 
     function showStreakInfo() {
-        alert("LA SFIDA DI PHARMO.IT\n\nUsa l'applicazione per 7 giorni consecutivi per sbloccare un Codice Sconto Esclusivo! 🔥\n\nAttuale: " + streakCount + " di 7 giorni.\n\n💡 IMPORTANTE: Alla fine della sfida, ricordati di aggiornare il tuo peso nel profilo!");
+        alert("LA SFIDA DI PHARMO.IT\n\nUsa l'applicazione con costanza per sbloccare Codici Sconto Esclusivi!\n\nLivelli:\n- 7 Giorni: Bronzo\n- 14 Giorni: Argento\n- 30 Giorni: Oro\n\nAttuale: " + streakCount + " giorni.\n\n💡 IMPORTANTE: Ricordati di aggiornare il tuo peso nel profilo ogni 7 giorni.");
     }
 
-    if (streakCount >= 7 && !localStorage.getItem('reward_claimed')) {
+    // Check App Milestones (7, 14, 30)
+    let rewardCode = "";
+    let rewardTitleText = "";
+    let rewardMsgText = "";
+    let showReward = false;
+
+    if (streakCount === 7 && !localStorage.getItem('claimed_7')) {
+        rewardCode = "PHARMOAPP"; 
+        rewardTitleText = "🎖️ Livello Bronzo!";
+        rewardMsgText = "Hai completato la tua prima settimana!";
+        showReward = true;
+        localStorage.setItem('claimed_7', 'true');
+    } else if (streakCount === 14 && !localStorage.getItem('claimed_14')) {
+        rewardCode = "PHARMOAPP14";
+        rewardTitleText = "🥈 Livello Argento!";
+        rewardMsgText = "Due settimane di costanza assoluta!";
+        showReward = true;
+        localStorage.setItem('claimed_14', 'true');
+    } else if (streakCount === 30 && !localStorage.getItem('claimed_30')) {
+        rewardCode = "PHARMOAPP30";
+        rewardTitleText = "🥇 Livello Oro!";
+        rewardMsgText = "Un mese intero! Sei una leggenda.";
+        showReward = true;
+        localStorage.setItem('claimed_30', 'true');
+    }
+
+    // Show Reward Modal if triggered
+    if (showReward) {
+        document.getElementById('rewardTitle').innerText = rewardTitleText;
+        document.getElementById('rewardMsg').innerText = rewardMsgText;
+        document.getElementById('rewardCodeDisplay').innerText = rewardCode;
         document.getElementById('rewardModal').style.display = 'flex';
     }
 
-    function closeReward() {
-        localStorage.setItem('reward_claimed', 'true');
-        document.getElementById('rewardModal').style.display = 'none';
+    // --- WATER STREAK LOGIC (3 DAYS -> PHARMOSPED) ---
+    function checkWaterStreak() {
+        let wStreak = parseInt(localStorage.getItem('water_streak_days')) || 0;
+        let lastWaterWin = localStorage.getItem('last_water_win_date');
+        
+        if (lastWaterWin !== todayStr) {
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (lastWaterWin === yesterday.toDateString()) {
+                wStreak++;
+            } else {
+                wStreak = 1;
+            }
+            
+            localStorage.setItem('water_streak_days', wStreak);
+            localStorage.setItem('last_water_win_date', todayStr);
+            
+            if (wStreak >= 3 && !localStorage.getItem('water_reward_claimed')) {
+                document.getElementById('waterRewardModal').style.display = 'flex';
+            } else {
+                showToast(`Ottimo! 💧 Serie idratazione: ${wStreak}/3 giorni.`);
+            }
+        }
+    }
+
+    function closeReward(modalId) {
+        if(modalId === 'rewardModal') localStorage.setItem('reward_claimed', 'true');
+        if(modalId === 'waterRewardModal') localStorage.setItem('water_reward_claimed', 'true');
+        
+        document.getElementById(modalId).style.display = 'none';
         window.open('https://www.pharmo.it', '_blank');
     }
 
-    function copyCode() {
-        const code = document.querySelector('.reward-code').innerText;
+    function copyCode(element) {
+        const code = element.innerText;
         navigator.clipboard.writeText(code);
-        alert("Codice copiato!");
+        alert("Codice " + code + " copiato!");
     }
 
     // --- WATER TRACKER LOGIC (SEQUENTIAL + TIMER) ---
@@ -444,7 +517,13 @@
             waterCount++;
             localStorage.setItem('water_last_time', currentTime);
             renderWater();
-            showToast("Idratazione registrata! 💧 Un passo in più verso la Sfida 3 Giorni Acqua 🔥");
+            
+            // Check win condition
+            if (waterCount === 8) {
+                checkWaterStreak();
+            } else {
+                showToast("Idratazione registrata! 💧 Continua per la Sfida 3 Giorni.");
+            }
         } 
         // RIMOZIONE
         else if (idx === waterCount - 1) {
@@ -767,4 +846,3 @@
 </script>
 </body>
 </html>
-
