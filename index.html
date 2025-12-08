@@ -145,7 +145,7 @@
             max-height: 90vh; overflow-y: auto;
         }
         .modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: #1c1c1e; }
-        .modal-text { font-size: 0.85rem; color: #444; line-height: 1.5; text-align: left; margin-bottom: 20px; }
+        .modal-text { font-size: 0.9rem; color: #444; line-height: 1.5; text-align: left; margin-bottom: 20px; }
         .modal-btn {
             background: #007aff; color: white; border: none; width: 100%;
             padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer;
@@ -184,8 +184,7 @@
             Benvenuto su <b>Pharmocounter</b>.<br><br>
             Questa applicazione utilizza formule scientifiche standardizzate per la stima del fabbisogno calorico. I dati forniti sono <b>esclusivamente a scopo informativo</b>.<br><br>
             <b>Non siamo medici.</b> L'utilizzo di questa app non sostituisce il parere di un medico o nutrizionista.<br><br>
-            <b>Privacy & Dati:</b> I dati inseriti (peso, età, obiettivi) restano esclusivamente sul tuo dispositivo. Nessuna informazione viene inviata a server esterni o a terze parti. Cancellando la cache, i dati andranno persi.<br><br>
-            <b>Responsabilità:</b> Pharmo.it e l'azienda gestore declinano ogni responsabilità per l'uso improprio delle informazioni. L'azienda non si assume responsabilità per eventuali perdite di dati, errori di calcolo, bug del sistema o malfunzionamenti tecnici dovuti ad aggiornamenti software.
+            <b>Pharmo.it</b> e l'azienda gestore declinano ogni responsabilità per l'uso improprio delle informazioni. Inoltre, l'azienda non si assume responsabilità per eventuali perdite di dati, errori di calcolo, bug del sistema o malfunzionamenti dovuti ad aggiornamenti software.
         </div>
         <button class="modal-btn" onclick="acceptTerms()">Ho capito e Accetto</button>
     </div>
@@ -406,7 +405,7 @@
     document.getElementById('streakDisplay').innerText = `🔥 ${streakCount}gg`;
 
     function showStreakInfo() {
-        alert("LA SFIDA DI PHARMO.IT\n\nUsa l'applicazione con costanza per sbloccare Codici Sconto Esclusivi!\n\nLivelli:\n- 7 Giorni: Bronzo\n- 14 Giorni: Argento\n- 30 Giorni: Oro\n\nAttuale: " + streakCount + " giorni.\n\n💡 IMPORTANTE: Ricordati di aggiornare il tuo peso nel profilo ogni 7 giorni.");
+        alert("LA SFIDA DI PHARMO.IT\n\nUsa l'applicazione con costanza per sbloccare Codici Sconto Esclusivi!\n\nLivelli:\n- 7 Giorni: Bronzo\n- 14 Giorni: Argento\n- 30 Giorni: Oro\n\nAttuale: " + streakCount + " giorni.\n\n⚠️ NOTA: I codici sconto cambiano regolarmente! Utilizzali in fretta appena sbloccati.\n\n💡 IMPORTANTE: Ricordati di aggiornare il tuo peso nel profilo ogni 7 giorni.");
     }
 
     // Check App Milestones (7, 14, 30)
