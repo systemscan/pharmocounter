@@ -69,6 +69,18 @@
         .bmr-tag { position: absolute; top: -16px; font-size: 0.65rem; color: var(--text-sec); transform: translateX(-50%); font-weight: 700; text-transform: uppercase; }
         .status-text { text-align: center; font-size: 0.85rem; font-weight: 600; margin-top: 10px; min-height: 1.2em; }
 
+        /* CUMULATIVE BOX (NUOVO) */
+        .cumulative-box { background: #e6f7ff; border: 1px solid #cceeff; border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 5px; }
+        .cumul-label { font-size: 0.8rem; font-weight: 600; color: #0056b3; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cumul-value { font-size: 2rem; font-weight: 800; color: #007aff; line-height: 1; }
+        .pred-status { 
+            font-size: 0.85rem; font-weight: 600; 
+            margin-top: 15px; padding: 10px; 
+            border-radius: 10px; line-height: 1.4; 
+            border: 1px solid;
+            transition: all 0.3s ease;
+        }
+
         /* WATER TRACKER */
         .water-box { margin-top: 20px; padding: 15px; background: #eef7ff; border-radius: 16px; border: 1px solid #dbeafe; }
         .water-title { font-size: 0.85rem; font-weight: 700; color: #004494; margin-bottom: 10px; display: flex; justify-content: space-between; }
@@ -184,7 +196,8 @@
             Benvenuto su <b>Pharmocounter</b>.<br><br>
             Questa applicazione utilizza formule scientifiche standardizzate per la stima del fabbisogno calorico. I dati forniti sono <b>esclusivamente a scopo informativo</b>.<br><br>
             <b>Non siamo medici.</b> L'utilizzo di questa app non sostituisce il parere di un medico o nutrizionista.<br><br>
-            <b>Pharmo.it</b> e l'azienda gestore declinano ogni responsabilità per l'uso improprio delle informazioni. Inoltre, l'azienda non si assume responsabilità per eventuali perdite di dati, errori di calcolo, bug del sistema o malfunzionamenti dovuti ad aggiornamenti software.
+            <b>Privacy & Dati:</b> I dati inseriti (peso, età, obiettivi) restano esclusivamente sul tuo dispositivo. Nessuna informazione viene inviata a server esterni o a terze parti. Cancellando la cache, i dati andranno persi.<br><br>
+            <b>Responsabilità:</b> Pharmo.it e l'azienda gestore declinano ogni responsabilità per l'uso improprio delle informazioni. L'azienda non si assume responsabilità per eventuali perdite di dati, errori di calcolo, bug del sistema o malfunzionamenti tecnici dovuti ad aggiornamenti software.
         </div>
         <button class="modal-btn" onclick="acceptTerms()">Ho capito e Accetto</button>
     </div>
@@ -247,6 +260,17 @@
                 <label>Altezza (cm)</label>
                 <input type="number" id="height" value="175" onchange="calc()">
             </div>
+            
+<div style="grid-column: 1 / -1;">
+    <label>🎯 Peso Obiettivo (kg) <span style="font-weight: normal; color: #888;">(opzionale)</span></label>
+    <input type="number" id="targetWeightInput" placeholder="es. 65" onchange="calc()">
+</div>
+<div style="grid-column: 1 / -1;">
+    <label>📅 Data Obiettivo <span style="font-weight: normal; color: #888;">(opzionale)</span></label>
+    <input type="date" id="targetDateInput" onchange="calc()">
+</div>
+
+            
             <div style="grid-column: 1 / -1;">
                 <label>Livello Attività Fisica</label>
                 <select id="act" onchange="calc()">
@@ -262,6 +286,11 @@
                     <option value="lose_aggr">📉 Perdita Peso Standard (-20%)</option>
                     <option value="lose_athlete_15">✂️ Atleta / Cut Aggressivo (-15%)</option>
                     <option value="lose_cons">🛡️ Atleta / Cut Conservativo (-10%)</option>
+                    
+                    <option value="detox">💧 Detox & Sgonfiamento (-5%)</option>
+                    <option value="beauty">✨ Beauty & Anti-Age (Mantenimento)</option>
+                    <option value="recomp">💪 Ricomposizione Corporea (High Prot)</option>
+                    
                     <option value="maintain" selected>⚖️ Mantenimento</option>
                     <option value="gain">📈 Aumento Muscolare (+10%)</option>
                 </select>
@@ -287,6 +316,12 @@
             </div>
         </div>
         <div class="status-text" id="statusText">...</div>
+    </div>
+    
+    <div class="cumulative-box">
+        <div class="cumul-label">Deficit Totale Risparmiato (Stima)</div>
+        <div class="cumul-value" id="cumulativeDisplay">0 Kg</div>
+        <div class="pred-status" id="predictionStatus">Inserisci Obiettivo Peso e Data per l'analisi</div>
     </div>
 
     <div class="shop-card" id="shopCard">
@@ -358,17 +393,144 @@
     const options = { weekday: 'long', day: 'numeric', month: 'long' };
     document.getElementById('dateText').innerText = d.toLocaleDateString('it-IT', options);
 
+    const KCAL_PER_KG_FAT = 7700; 
+    const SECONDS_IN_DAY = 86400;
+    const MAX_SAFE_DAILY_DEFICIT = 1000; // Limite massimo di deficit per il blocco data
+
+
+    // --- SHOP TEXT CONSTANTS ---
+    const stackLoss = `
+        Consiglio: <b>Pharmofit</b> (Metabolismo), <b>Pharmodren</b> (Drenante) e <b>Pharmofiller</b> (Elasticità).
+        <details class="shop-details">
+            <summary>Svela i dettagli del trattamento</summary>
+            <div class="shop-highlight" style="border-left-color:#ff3b30;">
+                <b>1. PHARMOFIT:</b> Sblocca il metabolismo stagnante. Caffè Verde e Arancio Amaro innescano la termogenesi.<br>
+                <i>Ottieni:</i> Dimagrimento costante senza abbuffate.
+            </div>
+            <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
+                <b>2. PHARMODREN:</b> Azione d'urto sui liquidi. Betulla e Ananas prosciugano la ritenzione che maschera i progressi.<br>
+                <i>Ottieni:</i> Addome sgonfio e gambe leggere.
+            </div>
+            <div class="shop-highlight" style="margin-top:5px; border-left-color:#007aff; background: #eef7ff;">
+                <b>3. PHARMOFILLER:</b> L'architetto della pelle (Collagene + Ialuronico). Ricostruisce l'impalcatura cutanea mentre ti svuoti.<br>
+                <i>Ottieni:</i> Una pelle che si "ritira" rimanendo soda.
+            </div>
+        </details>`;
+
+    const stackDetox = `
+        Consiglio: <b>Pharmodren</b> (Liquidi) e <b>Pharmolain</b> (Pancia Piatta).
+        <details class="shop-details">
+            <summary>Svela i dettagli del trattamento</summary>
+            <div class="shop-highlight" style="border-left-color:#34c759;">
+                <b>1. PHARMODREN:</b> Elimina i liquidi in eccesso e le tossine accumulate.<br>
+                <i>Ottieni:</i> Gambe leggere e riduzione della cellulite.
+            </div>
+            <div class="shop-highlight" style="margin-top:5px; border-left-color:#ffcc00;">
+                <b>2. PHARMOLAIN (Bromelina 500mg):</b> Potente antinfiammatorio e digestivo.<br>
+                <i>Ottieni:</i> Pancia piatta subito dopo i pasti.
+            </div>
+        </details>`;
+
+    const stackBeauty = `
+        Consiglio: <b>Pharmofiller</b> (Collagene) e <b>Pharmodren</b> (Microcircolo).
+        <details class="shop-details">
+            <summary>Svela i dettagli del trattamento</summary>
+            <div class="shop-highlight" style="border-left-color:#007aff; background: #eef7ff;">
+                <b>1. PHARMOFILLER:</b> Collagene Marino + Acido Ialuronico.<br>
+                <i>Ottieni:</i> Pelle luminosa, idratata e distesa.
+            </div>
+            <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
+                <b>2. PHARMODREN:</b> La Vite Rossa migliora il microcircolo.<br>
+                <i>Ottieni:</i> Migliore ossigenazione dei tessuti cutanei.
+            </div>
+        </details>`;
+
+    const stackRecomp = `
+        Consiglio: <b>Pharmofit</b> (Energia) e <b>Pharmolain</b> (Assimilazione).
+        <details class="shop-details">
+            <summary>Svela i dettagli del trattamento</summary>
+            <div class="shop-highlight" style="border-left-color:#ff3b30;">
+                <b>1. PHARMOFIT:</b> Gestione dei carboidrati e spinta metabolica.<br>
+                <i>Ottieni:</i> Energia esplosiva per allenamenti intensi.
+            </div>
+            <div class="shop-highlight" style="margin-top:5px; border-left-color:#ffcc00;">
+                <b>2. PHARMOLAIN:</b> La Bromelina massimizza l'assorbimento delle proteine.<br>
+                <i>Ottieni:</i> Massimo recupero muscolare.
+            </div>
+        </details>`;
+
+    const stackGain = `
+         Consiglio: <b>Pharmofit</b> (Controllo), <b>Pharmodren</b> (Definizione) e <b>Pharmofiller</b> (Struttura).
+        <details class="shop-details">
+            <summary>Svela i dettagli del trattamento</summary>
+            <div class="shop-highlight" style="border-left-color:#ff3b30;">
+                <b>1. PHARMOFIT:</b> Il Cromo dirige i carboidrati nei muscoli.<br>
+                <i>Ottieni:</i> Crescita muscolare pulita (Clean Bulk).
+            </div>
+            <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
+                <b>2. PHARMODREN:</b> Definizione HD. Espelle l'acqua extracellulare.<br>
+                <i>Ottieni:</i> Muscoli duri, separati e vascolarizzati.
+            </div>
+            <div class="shop-highlight" style="margin-top:5px; border-left-color:#007aff; background: #eef7ff;">
+                <b>3. PHARMOFILLER:</b> Scudo anti-smagliature.<br>
+                <i>Eviti:</i> Le smagliature da crescita rapida.
+            </div>
+        </details>`;
+    
     // --- DATE LOGIC (SHIFT 04:00 AM) ---
-    const now = new Date();
+    const realNow = new Date(); 
+    const now = new Date(realNow);
     now.setHours(now.getHours() - 4);
     const todayStr = now.toDateString(); 
+    
+    // --- LOAD PERSISTENT DATA ---
+    let savedProfile = localStorage.getItem('profile_v3');
+    let state = JSON.parse(savedProfile) || {
+        g: 'm', age: 30, w: 75, h: 175, act: 1.375, goal: 'maintain', 
+        targetW: 0, targetD: '' 
+    };
+    
+    let foods = JSON.parse(localStorage.getItem('foods_v3')) || [];
+    let waterCount = parseInt(localStorage.getItem('water_count')) || 0;
+    
+    // CUMULATIVE TRACKING VARIABLES
+    let cumulativeDeficit = parseFloat(localStorage.getItem('cumulative_deficit')) || 0;
+    let lastDayTotalConsumed = parseFloat(localStorage.getItem('last_day_total_consumed')) || 0;
+    let lastDayTarget = parseFloat(localStorage.getItem('last_day_target')) || 0;
 
-    // --- AUTOMATIC DAILY RESET (MASTER CHECK) ---
+    let streakCount = parseInt(localStorage.getItem('streak_days')) || 1;
+    let lastVisitDate = localStorage.getItem('last_visit_date');
+
+    // --- AUTOMATIC DAILY RESET & CUMULATIVE UPDATE (MASTER CHECK) ---
     if (localStorage.getItem('app_date') !== todayStr) {
+        // 1. Calculate and add previous day's result to cumulative deficit
+        // This ensures the cumulative deficit is only updated once per "day" (post 4 AM shift)
+        if (lastDayTarget > 0) {
+            let lastDayDeficit = lastDayTarget - lastDayTotalConsumed;
+            cumulativeDeficit += lastDayDeficit;
+            localStorage.setItem('cumulative_deficit', cumulativeDeficit);
+        }
+        
+        // 2. Reset daily trackers
         localStorage.setItem('foods_v3', JSON.stringify([])); 
         localStorage.setItem('water_count', 0); 
         localStorage.setItem('water_last_time', 0); 
+        
+        // 3. Update date marker (MUST BE LAST)
         localStorage.setItem('app_date', todayStr); 
+
+        // 4. Update streak logic
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (lastVisitDate !== todayStr) {
+            if (lastVisitDate === yesterday.toDateString()) {
+                streakCount++;
+            } else {
+                streakCount = 1;
+            }
+            localStorage.setItem('streak_days', streakCount);
+            localStorage.setItem('last_visit_date', todayStr);
+        }
     }
 
     // --- DISCLAIMER LOGIC ---
@@ -384,24 +546,8 @@
         }
     }
 
-    // --- STREAK & REWARD LOGIC (APP: 7, 14, 30 DAYS) ---
-    let streakCount = parseInt(localStorage.getItem('streak_days')) || 1;
-    let lastVisitDate = localStorage.getItem('last_visit_date');
 
-    // Update streak Logic
-    if (lastVisitDate !== todayStr) {
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (lastVisitDate === yesterday.toDateString()) {
-            streakCount++;
-        } else if (lastVisitDate) {
-            streakCount = 1;
-        }
-        localStorage.setItem('streak_days', streakCount);
-        localStorage.setItem('last_visit_date', todayStr);
-    }
-
+    // --- STREAK & REWARD LOGIC ---
     document.getElementById('streakDisplay').innerText = `🔥 ${streakCount}gg`;
 
     function showStreakInfo() {
@@ -447,23 +593,29 @@
         let wStreak = parseInt(localStorage.getItem('water_streak_days')) || 0;
         let lastWaterWin = localStorage.getItem('last_water_win_date');
         
+        // We only check for new streak if the current day has not yet registered a streak win or fail
         if (lastWaterWin !== todayStr) {
             const yesterday = new Date(now);
             yesterday.setDate(yesterday.getDate() - 1);
             
+            // Check if user completed water yesterday
+            // NOTE: For this to work, a daily water win status should be saved before the reset, 
+            // but since we are resetting the counter, we assume the check happens right after a win.
+            
+            // We use a simplified logic: if lastWaterWin was yesterday, assume continuity.
             if (lastWaterWin === yesterday.toDateString()) {
                 wStreak++;
             } else {
-                wStreak = 1;
+                wStreak = 1; // Reset if gap
             }
             
             localStorage.setItem('water_streak_days', wStreak);
-            localStorage.setItem('last_water_win_date', todayStr);
+            localStorage.setItem('last_water_win_date', todayStr); // Mark today as checked
             
             if (wStreak >= 3 && !localStorage.getItem('water_reward_claimed')) {
                 document.getElementById('waterRewardModal').style.display = 'flex';
             } else {
-                showToast(`Ottimo! 💧 Serie idratazione: ${wStreak}/3 giorni.`);
+                showToast(`Ottimo! 💧 Serie idratazione: ${wStreak} giorni.`);
             }
         }
     }
@@ -481,10 +633,8 @@
         navigator.clipboard.writeText(code);
         alert("Codice " + code + " copiato!");
     }
-
+    
     // --- WATER TRACKER LOGIC (SEQUENTIAL + TIMER) ---
-    let waterCount = parseInt(localStorage.getItem('water_count')) || 0;
-
     function renderWater() {
         const grid = document.getElementById('waterGrid');
         grid.innerHTML = '';
@@ -564,24 +714,22 @@
         }
     }
 
-    // --- APP CORE ---
-    let savedProfile = localStorage.getItem('profile_v3');
-    if (!savedProfile && localStorage.getItem('terms_accepted_v1')) {
-        document.getElementById('profileDetails').setAttribute('open', 'true');
-    }
 
-    let foods = JSON.parse(localStorage.getItem('foods_v3')) || [];
-    let state = JSON.parse(savedProfile) || {
-        g: 'm', age: 30, w: 75, h: 175, act: 1.375, goal: 'maintain'
-    };
-
+    // --- CORE LOGIC (CALCULATION & RENDER) ---
+    
+    // RESTORE INPUTS (HTML) 
+    // This is repeated in calc, but here ensures the display is correct on load
+    document.getElementById('dateText').innerText = realNow.toLocaleDateString('it-IT', options);
     document.getElementById('gender').value = state.g;
     document.getElementById('age').value = state.age;
     document.getElementById('weight').value = state.w;
     document.getElementById('height').value = state.h;
+    document.getElementById('targetWeightInput').value = state.targetW || '';
+    document.getElementById('targetDateInput').value = state.targetD || '';
     document.getElementById('act').value = state.act;
     if(state.goal === 'lose') state.goal = 'lose_aggr'; 
     document.getElementById('goal').value = state.goal;
+
 
     let TGT_CAL = 0, TGT_C = 0, TGT_P = 0, TGT_F = 0, BMR = 0, TDEE = 0;
 
@@ -597,100 +745,102 @@
             }
         }
 
+                // Collect current input state, including new target fields
         state = {
             g: document.getElementById('gender').value,
             age: parseFloat(document.getElementById('age').value),
             w: newWeight,
             h: parseFloat(document.getElementById('height').value),
             act: parseFloat(document.getElementById('act').value),
-            goal: document.getElementById('goal').value
+            goal: document.getElementById('goal').value,
+            targetW: parseFloat(document.getElementById('targetWeightInput').value) || 0,
+            targetD: document.getElementById('targetDateInput').value || ''
         };
         localStorage.setItem('profile_v3', JSON.stringify(state));
 
+        // 1. Core Calorie Math (Mifflin-St Jeor)
         let s = (10 * state.w) + (6.25 * state.h) - (5 * state.age);
         BMR = (state.g === 'm') ? s + 5 : s - 161;
         TDEE = Math.round(BMR * state.act);
 
         let adjustments = {
-            'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 'maintain': 1.0, 'gain': 1.10
+            'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 
+            'detox': 0.95, 'beauty': 1.0, 'recomp': 1.0, 
+            'maintain': 1.0, 'gain': 1.10
         };
         TGT_CAL = Math.round(TDEE * adjustments[state.goal]);
 
-        let safetyText = "";
+              let safetyText = "";
+        // TROVA LA RIGA SOPRA E INSERISCI QUI SOTTO:
+
+        // --- SAFETY CHECK (Blocco Rigido Data) ---
+        if (state.targetW > 0 && state.w > state.targetW) {
+            let weightGap = state.w - state.targetW;
+            let kcalGapTotal = weightGap * KCAL_PER_KG_FAT;
+            let minDaysNeeded = Math.ceil(kcalGapTotal / MAX_SAFE_DAILY_DEFICIT);
+            
+            // Calcola la data minima possibile (YYYY-MM-DD)
+            let earliestDate = new Date(Date.now() + minDaysNeeded * SECONDS_IN_DAY * 1000);
+            let yyyy = earliestDate.getFullYear();
+            let mm = String(earliestDate.getMonth() + 1).padStart(2, '0');
+            let dd = String(earliestDate.getDate()).padStart(2, '0');
+            let minDateString = `${yyyy}-${mm}-${dd}`;
+
+            // 1. Applica il blocco all'input HTML
+            document.getElementById('targetDateInput').setAttribute('min', minDateString);
+
+            // 2. Clear se la data precedentemente selezionata è ora troppo aggressiva
+            if (state.targetD) {
+                let userTargetDate = new Date(state.targetD);
+                if (userTargetDate.getTime() < earliestDate.getTime()) {
+                    showToast(`⛔ La data selezionata è troppo vicina per un taglio sano! Minimo: ${earliestDate.toLocaleDateString('it-IT')}.`);
+                    document.getElementById('targetDateInput').value = ''; 
+                    state.targetD = ''; // Rimuove la data dallo stato
+                    localStorage.setItem('profile_v3', JSON.stringify(state)); 
+                }
+            }
+        } else {
+            // Rimuove l'attributo min se non ci sono obiettivi sensati (es. peso target > peso attuale)
+            document.getElementById('targetDateInput').removeAttribute('min');
+        }
+
         if (TGT_CAL < BMR) {
             TGT_CAL = Math.round(BMR);
             safetyText = "<br><span style='color:var(--orange); font-weight:600;'>⚠️ Target limitato al BMR per sicurezza.</span>";
         }
 
-        // --- SHOP 3-FASI LOGIC ---
+        // 2. Macro Logic & Shop Text Assignment (Protocollo Consigliato FIX)
         let p_ratio, c_ratio, f_ratio, goalText;
         let sTitle, sDesc;
-        const fillerBenefits = "Collagene Marino, Acido Ialuronico e Vit. C.";
 
-        const stackLoss = `
-            Consiglio: <b>Pharmofit</b> (Metabolismo), <b>Pharmodren</b> (Drenante) e <b>Pharmofiller</b> (Elasticità).
-            <details class="shop-details">
-                <summary>Svela i dettagli del trattamento</summary>
-                <div class="shop-highlight" style="border-left-color:#ff3b30;">
-                    <b>1. PHARMOFIT:</b> Sblocca il metabolismo stagnante. Caffè Verde e Arancio Amaro innescano la termogenesi (bruci grassi a riposo), mentre il Cromo spegne la fame nervosa.<br>
-                    <i>Ottieni:</i> Dimagrimento costante senza abbuffate.<br>
-                    <i>Eviti:</i> Lo stallo del peso e la fame incontrollabile.
-                </div>
-                <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
-                    <b>2. PHARMODREN:</b> Azione d'urto sui liquidi. Betulla e Ananas prosciugano la ritenzione che maschera i progressi.<br>
-                    <i>Ottieni:</i> Addome sgonfio e gambe leggere.<br>
-                    <i>Eviti:</i> L'aspetto gonfio/appannato e la cellulite.
-                </div>
-                <div class="shop-highlight" style="margin-top:5px; border-left-color:#007aff; background: #eef7ff;">
-                    <b>3. PHARMOFILLER:</b> L'architetto della pelle (Collagene + Ialuronico). Ricostruisce l'impalcatura cutanea mentre ti svuoti.<br>
-                    <i>Ottieni:</i> Una pelle che si "ritira" rimanendo soda.<br>
-                    <i>Eviti:</i> L'effetto <b>pelle flaccida</b> o "svuotata" post-dieta.
-                </div>
-            </details>`;
-
-        const stackGain = `
-             Consiglio: <b>Pharmofit</b> (Controllo), <b>Pharmodren</b> (Definizione) e <b>Pharmofiller</b> (Struttura).
-            <details class="shop-details">
-                <summary>Svela i dettagli del trattamento</summary>
-                <div class="shop-highlight" style="border-left-color:#ff3b30;">
-                    <b>1. PHARMOFIT:</b> Gestione insulinica. Il Cromo dirige i carboidrati nei muscoli (glicogeno) invece che nel tessuto adiposo.<br>
-                    <i>Ottieni:</i> Crescita muscolare pulita (Clean Bulk).<br>
-                    <i>Eviti:</i> Accumulo eccessivo di grasso in surplus.
-                </div>
-                <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
-                    <b>2. PHARMODREN:</b> Definizione HD. Espelle l'acqua extracellulare mantenendo visibili i dettagli muscolari.<br>
-                    <i>Ottieni:</i> Muscoli duri, separati e vascolarizzati.<br>
-                    <i>Eviti:</i> Il "faccione gonfio" tipico della massa.
-                </div>
-                <div class="shop-highlight" style="margin-top:5px; border-left-color:#007aff; background: #eef7ff;">
-                    <b>3. PHARMOFILLER:</b> Scudo anti-smagliature. Nutre la matrice dermica sottoposta a forte tensione per la crescita muscolare.<br>
-                    <i>Ottieni:</i> Pelle elastica e resistente.<br>
-                    <i>Eviti:</i> Le <b>smagliature</b> da crescita rapida.
-                </div>
-            </details>`;
+        // Default: Mantenimento Standard 50/20/30 - Use Gain Stack as a generic struct.
+        c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; 
+        sTitle = "Protocollo Definizione & Struttura";
+        sDesc = stackGain; 
+        goalText = "Mantenimento"; 
 
         if(state.goal === 'lose_aggr' || state.goal === 'lose_athlete_15' || state.goal === 'lose_cons') {
-            sTitle = "Protocollo Total Body 3-Fasi";
-            sDesc = stackLoss;
-            
-            if(state.goal === 'lose_aggr') {
-                c_ratio = 0.40; p_ratio = 0.30; f_ratio = 0.30; goalText = "Perdita Peso Standard (-20%)";
-            } else if (state.goal === 'lose_athlete_15') {
-                c_ratio = 0.35; p_ratio = 0.35; f_ratio = 0.30; goalText = "Atleta / Cut Aggressivo (-15%)";
-            } else {
-                c_ratio = 0.40; p_ratio = 0.30; f_ratio = 0.30; goalText = "Atleta / Cut Conservativo (-10%)";
-            }
+            sTitle = "Protocollo Total Body 3-Fasi"; sDesc = stackLoss;
+            if(state.goal === 'lose_aggr') { c_ratio = 0.40; p_ratio = 0.30; f_ratio = 0.30; goalText = "Perdita Peso Standard (-20%)"; } 
+            else if (state.goal === 'lose_athlete_15') { c_ratio = 0.35; p_ratio = 0.35; f_ratio = 0.30; goalText = "Atleta / Cut Aggressivo (-15%)"; } 
+            else { c_ratio = 0.40; p_ratio = 0.30; f_ratio = 0.30; goalText = "Atleta / Cut Conservativo (-10%)"; }
+        
+        } else if (state.goal === 'detox') {
+            c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; 
+            goalText = "Detox & Sgonfiamento (-5%)"; sTitle = "Protocollo Pancia Piatta & Detox"; sDesc = stackDetox;
 
-        } else {
-            sTitle = "Protocollo Definizione & Struttura";
-            sDesc = stackGain;
+        } else if (state.goal === 'beauty') {
+            c_ratio = 0.45; p_ratio = 0.25; f_ratio = 0.30; 
+            goalText = "Beauty & Anti-Age"; sTitle = "Protocollo Glow: Pelle & Microcircolo"; sDesc = stackBeauty;
 
-            if(state.goal === 'gain') {
-                c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; goalText = "Surplus Muscolare (+10%)";
-            } else {
-                c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; goalText = "Mantenimento Peso";
-            }
+        } else if (state.goal === 'recomp') {
+            c_ratio = 0.35; p_ratio = 0.35; f_ratio = 0.30; // High Protein for Recomposition
+            goalText = "Ricomposizione Corporea"; sTitle = "Protocollo Body Recomp"; sDesc = stackRecomp;
+
+        } else if (state.goal === 'gain') {
+            c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; goalText = "Surplus Muscolare (+10%)";
         }
+
 
         document.getElementById('shopTitle').innerText = sTitle;
         document.getElementById('shopDesc').innerHTML = sDesc;
@@ -707,12 +857,89 @@
         
         document.getElementById('targetDisplay').innerText = TGT_CAL;
 
+        // 3. Prediction Logic (Traguardo)
+        updatePredictionStatus(TDEE, TGT_CAL);
+
         let bmrPct = Math.min((BMR / TGT_CAL) * 100, 95);
         document.getElementById('bmrMarker').style.left = bmrPct + "%";
         document.getElementById('bmrTag').style.left = bmrPct + "%";
-
+        
         render();
+
+        // Store target for tomorrow's cumulative calculation
+        localStorage.setItem('last_day_target', TGT_CAL); 
     }
+
+    // --- Prediction Status Update (Future Goal Predictor) ---
+    function updatePredictionStatus(TDEE, TGT_CAL) {
+        const predBox = document.getElementById('predictionStatus');
+        
+        // Update Cumulative Display
+        const cumulativeKg = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1);
+        document.getElementById('cumulativeDisplay').innerText = `${cumulativeKg} Kg`;
+
+        // Check if user has defined a goal weight and date
+        if (!state.targetD || state.targetW <= 0) {
+            predBox.style.backgroundColor = '#eef7ff';
+            predBox.style.color = 'var(--shop-text)';
+            predBox.style.borderColor = '#cceeff';
+            predBox.innerHTML = 'Inserisci Peso/Data Obiettivo per l\'Analisi 💡';
+            return;
+        }
+
+        const weightGap = state.w - state.targetW;
+
+        if (weightGap <= 0) {
+            predBox.style.backgroundColor = '#c8f9c8';
+            predBox.style.color = 'var(--success)';
+            predBox.style.borderColor = 'var(--success)';
+            predBox.innerHTML = '✅ **Obiettivo Raggiunto!** Il tuo peso è già a target.';
+            return;
+        }
+        
+        const targetDateMs = new Date(state.targetD).getTime();
+        const currentDeficit = TDEE - TGT_CAL;
+        const daysLeft = Math.ceil((targetDateMs - realNow.getTime()) / (1000 * SECONDS_IN_DAY));
+
+        if (daysLeft <= 0) {
+            predBox.style.backgroundColor = '#ffc9c9';
+            predBox.style.color = 'var(--danger)';
+            predBox.style.borderColor = 'var(--danger)';
+            predBox.innerHTML = '📅 **Data Obiettivo Scaduta!** Rivedi la data o il peso target.';
+            return;
+        }
+
+        const kcalGapTotal = weightGap * KCAL_PER_KG_FAT;
+        const requiredDailyDeficit = Math.round(kcalGapTotal / daysLeft);
+        
+        if (currentDeficit <= 0) { // Maintenance, Recomp, or Gain
+             predBox.style.backgroundColor = '#fff0c9';
+             predBox.style.color = '#e07f00';
+             predBox.style.borderColor = '#ffcc00';
+             predBox.innerHTML = `⚠️ **Piano Non Efficace!** Devi creare un deficit di ${requiredDailyDeficit} Kcal/giorno. Passa a un piano *Cut*!`;
+             return;
+        }
+
+        if (currentDeficit >= requiredDailyDeficit) {
+            // SUCCESS: Deficit is adequate or exceeds requirement.
+            const estimatedDays = Math.ceil(kcalGapTotal / currentDeficit);
+            const estimatedDate = new Date(realNow.getTime() + estimatedDays * 1000 * SECONDS_IN_DAY).toLocaleDateString('it-IT');
+            
+            predBox.style.backgroundColor = '#c8f9c8';
+            predBox.style.color = 'var(--success)';
+            predBox.style.borderColor = 'var(--success)';
+            predBox.innerHTML = `✅ **Piano Efficace!** Arriverai a ${state.targetW}kg entro la data fissata.`;
+
+        } else {
+            // FAIL: Deficit is too low.
+            predBox.style.backgroundColor = '#ffc9c9';
+            predBox.style.color = 'var(--danger)';
+            predBox.style.borderColor = 'var(--danger)';
+            predBox.innerHTML = `⛔ **Piano Non Allineato!** Per raggiungere ${state.targetW}kg in tempo, dovresti tagliare ${requiredDailyDeficit} Kcal/giorno (tu ne tagli ${currentDeficit}). Consigliamo: **Cambia piano Cut** oppure **posticipa la Data Obiettivo**.`;
+        }
+    }
+
+
 
     function render() {
         const list = document.getElementById('list');
@@ -735,6 +962,15 @@
             list.appendChild(li);
         });
 
+        // Store current consumption for cumulative update tomorrow
+        localStorage.setItem('last_day_total_consumed', curCal);
+
+        // This call is now redundant here since it's done in updatePredictionStatus, but harmless
+        // const cumulativeKg = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1);
+        // document.getElementById('cumulativeDisplay').innerText = `${cumulativeKg} Kg`;
+
+
+        // Empty State Tips
         if (foods.length === 0) {
             const tips = [
                 {t: "Bromelina (Pharmolain)", d: "Lo sapevi? 500mg di Bromelina 2500 GDU equivalgono all'attività enzimatica di 2 ananas interi. Potente contro la cellulite."},
@@ -773,7 +1009,8 @@
         let msgText = "⛔ Limite superato";
         let msgColor = "var(--danger)";
 
-        if (state.goal === 'lose_athlete_15' || state.goal === 'lose_cons') {
+        // Logic for specialized plans (Athlete/Recomp)
+        if (state.goal === 'lose_athlete_15' || state.goal === 'lose_cons' || state.goal === 'recomp') {
             let safeFloor = Math.round(TDEE * 0.80);
             if (curCal < BMR) {
                 barColor = "var(--warn)"; msgText = "⚠️ Energia insufficiente (Sotto Basale)"; msgColor = "#d4a017";
@@ -783,6 +1020,7 @@
                 barColor = "var(--success)"; msgText = "✅ Zona Target Ottimale (Atleta)"; msgColor = "var(--success)";
             }
         } else {
+            // Logic for standard plans
             if (curCal < BMR) {
                 barColor = "var(--warn)"; msgText = "⚠️ Energia insufficiente (Sotto Basale)"; msgColor = "#d4a017";
             } else if (curCal >= BMR && curCal <= TGT_CAL) {
@@ -834,14 +1072,22 @@
     }
 
     function resetAll() {
-        if(confirm("Cancellare tutto?")) {
-            foods = []; render();
+        if(confirm("Vuoi iniziare una nuova giornata?\n\nATTENZIONE: Se hai completato la giornata e superato le 4:00 AM, il deficit calorico di oggi è già stato salvato automaticamente. Se cancelli ora, perderai solo i dati inseriti dopo l'ultimo reset giornaliero.")) {
+            foods = []; 
+            localStorage.setItem('foods_v3', JSON.stringify([])); 
+            localStorage.setItem('water_count', 0); 
+            localStorage.setItem('water_last_time', 0); 
+            waterCount = 0;
+            renderWater();
+            render();
+            showToast("Diario e acqua azzerati! Inizia una nuova tracciatura.");
         }
     }
 
     // Init Calls
+    // The order is important: calc loads profile, then calls render which updates the food list/macros.
+    calc(); 
     renderWater();
-    calc();
     checkTimeAdvice(); 
 </script>
 </body>
