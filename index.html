@@ -6,219 +6,134 @@
     <title>Pharmocounter</title>
     <style>
         :root {
-            --bg-color: #f2f2f7;
-            --card-bg: #ffffff;
-            --text-main: #000000;
-            --text-sec: #8e8e93;
-            --accent: #007aff;
-            --danger: #ff3b30;
-            --warn: #ffcc00;     
-            --orange: #ff9500;   
-            --success: #34c759;  
-            --carb-color: #5ac8fa;
-            --prot-color: #ff2d55;
-            --fat-color: #ffcc00;
-            --shop-bg: #f4f9ff;
-            --shop-border: #dbeafe;
-            --shop-text: #003a80;
-            
-            /* Aggiungi questo blocco CSS all'interno del tag <style> */
-        .precision-card {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            min-width: 150px;
-            text-align: center;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --bg-color: #f2f2f7; --card-bg: #ffffff; --text-main: #000000; --text-sec: #8e8e93;
+            --accent: #007aff; --danger: #ff3b30; --warn: #ffcc00; --orange: #ff9500; --success: #34c759;
+            --carb-color: #5ac8fa; --prot-color: #ff2d55; --fat-color: #ffcc00;
+            --shop-bg: #f4f9ff; --shop-border: #dbeafe; --shop-text: #003a80;
         }
-        .card-platinum { background: linear-gradient(135deg, #e5e4e2, #a9a9a9); color: #333; box-shadow: 0 4px 15px rgba(169, 169, 169, 0.4); }
+
+        /* RESET & BASE */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; min-height: 100vh; margin: 0; padding: 10px; box-sizing: border-box; color: var(--text-main); -webkit-font-smoothing: antialiased; }
+        .app-container { background: var(--card-bg); width: 100%; max-width: 420px; border-radius: 24px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 20px; position: relative; }
+
+        /* HEADER */
+        .header-area { text-align: center; padding-bottom: 10px; margin-bottom: 5px; }
+        .date-badge { font-size: 0.8rem; color: var(--text-sec); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px; }
+        h1 { margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1; background: linear-gradient(135deg, #007aff 0%, #004494 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; }
+        .subtitle-brand { display: block; font-size: 0.95rem; color: var(--text-sec); font-weight: 500; margin-top: 5px; }
+        .streak-badge { position: absolute; top: 0; right: 0; background: #fff5e6; color: #ff9500; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 20px; border: 1px solid #ffeebb; cursor: pointer; transition: transform 0.1s; }
+        .streak-badge:active { transform: scale(0.95); }
+
+        /* CARDS & INPUTS */
+        .card { background: #f9f9fb; border-radius: 18px; padding: 18px; border: 1px solid rgba(0,0,0,0.03); }
+        summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; outline: none; display: flex; justify-content: space-between; align-items: center; color: var(--accent); list-style: none; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '⚙️'; font-size: 1rem; opacity: 0.7; transition: transform 0.2s; }
+        details[open] summary::after { transform: rotate(180deg); }
+        
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; align-items: end; }
+        label { font-size: 0.75rem; font-weight: 600; color: var(--text-sec); display: block; margin-bottom: 6px; }
+        
+        select, input { 
+            width: 100%; padding: 0 12px; border-radius: 12px; 
+            border: 1px solid #e5e5ea; background: #fff; 
+            font-size: 0.95rem; box-sizing: border-box; 
+            color: var(--text-main); height: 48px; 
+            line-height: normal; -webkit-appearance: none; appearance: none;
+            margin: 0;
+        } 
+        select:focus, input:focus { border-color: var(--accent); outline: none; }
+        
+        .info-box { grid-column: 1 / -1; font-size: 0.75rem; color: #666; background: #fff; padding: 12px; border-radius: 10px; border: 1px solid #eee; line-height: 1.5; margin-top: 5px; }
+
+        /* DASHBOARD & BARS */
+        .dash-header { text-align: center; margin: 10px 0; }
+        .big-val { font-size: 3.2rem; font-weight: 800; line-height: 1; letter-spacing: -2px; color: var(--text-main); }
+        .sub-val { font-size: 0.9rem; color: var(--text-sec); margin-top: 6px; font-weight: 500; }
+        
+        .track { background: #eef0f2; height: 14px; width: 100%; border-radius: 7px; overflow: hidden; position: relative; }
+        .fill { height: 100%; width: 0%; border-radius: 7px; transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; }
+        .bmr-line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(0,0,0,0.3); z-index: 5; border-right: 1px dashed rgba(255,255,255,0.7); }
+        .bmr-tag { position: absolute; top: -18px; font-size: 0.65rem; color: var(--text-sec); transform: translateX(-50%); font-weight: 700; text-transform: uppercase; }
+        .status-text { text-align: center; font-size: 0.85rem; font-weight: 600; margin-top: 10px; min-height: 1.2em; }
+
+        /* MACROS BOX */
+        .macro-grid { display: grid; gap: 18px; margin-top: 25px; }
+        .macro-item { display: flex; flex-direction: column; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #555; }
+
+        /* CUMULATIVE & CARDS */
+        .cumulative-box { background: #e6f7ff; border: 1px solid #cceeff; border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 5px; }
+        .cumul-label { font-size: 0.8rem; font-weight: 600; color: #0056b3; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cumul-value { font-size: 2rem; font-weight: 800; color: #007aff; line-height: 1; }
+        .pred-status { font-size: 0.85rem; font-weight: 600; margin-top: 15px; padding: 10px; border-radius: 10px; line-height: 1.4; border: 1px solid; transition: all 0.3s ease; }
+        
+        .precision-card { display: inline-block; padding: 8px 15px; border-radius: 12px; font-size: 1rem; font-weight: 800; letter-spacing: 0.5px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); min-width: 150px; text-align: center; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); cursor: pointer; }
         .card-gold { background: linear-gradient(135deg, #FFD700, #DAA520); color: #805a00; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); }
         .card-silver { background: linear-gradient(135deg, #C0C0C0, #808080); color: #444; }
         .card-bronze { background: linear-gradient(135deg, #CD7F32, #A0522D); color: #ffffff; }
         .card-default { background: #f0f0f5; color: var(--text-sec); }
 
-        }
-
-        body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; min-height: 100vh; margin: 0; padding: 20px 15px; box-sizing: border-box; color: var(--text-main); -webkit-font-smoothing: antialiased; }
-        
-        .app-container { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 28px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 24px; position: relative; }
-
-        /* HEADER STYLE */
-        .header-area { text-align: center; margin-bottom: 10px; padding-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); position: relative; }
-        .date-badge { font-size: 0.8rem; color: var(--text-sec); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
-        h1 { margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1; background: linear-gradient(135deg, #007aff 0%, #004494 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; }
-        .subtitle-brand { display: block; font-size: 0.95rem; color: var(--text-sec); font-weight: 500; margin-top: 5px; }
-        
-        /* STREAK BADGE */
-        .streak-badge {
-            position: absolute; top: 0; right: 0;
-            background: #fff5e6; color: #ff9500;
-            font-size: 0.75rem; font-weight: 700;
-            padding: 6px 12px; border-radius: 20px;
-            border: 1px solid #ffeebb; cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .streak-badge:active { transform: scale(0.95); background: #ffeebb; }
-
-        /* INPUT CARD */
-        .card { background: #f9f9fb; border-radius: 18px; padding: 18px; border: 1px solid rgba(0,0,0,0.03); }
-        summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; outline: none; display: flex; justify-content: space-between; align-items: center; color: var(--accent); }
-        summary::after { content: '⚙️'; font-size: 1rem; opacity: 0.7; }
-
-        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-        label { font-size: 0.75rem; font-weight: 600; color: var(--text-sec); display: block; margin-bottom: 6px; }
-        select, input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e5e5ea; background: #fff; font-size: 0.95rem; -webkit-appearance: none; box-sizing: border-box; color: var(--text-main); transition: border-color 0.2s; }
-        select:focus, input:focus { border-color: var(--accent); outline: none; }
-        
-        .info-box { grid-column: 1 / -1; font-size: 0.75rem; color: #666; background: #fff; padding: 12px; border-radius: 10px; border: 1px solid #eee; line-height: 1.5; margin-top: 5px; }
-
-        /* DASHBOARD */
-        .dash-header { text-align: center; margin: 10px 0; }
-        .big-val { font-size: 3.2rem; font-weight: 800; line-height: 1; letter-spacing: -2px; color: var(--text-main); }
-        .sub-val { font-size: 0.9rem; color: var(--text-sec); margin-top: 6px; font-weight: 500; }
-
-        /* PROGRESS BARS */
-        .bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #555; }
-        .track { background: #eef0f2; height: 14px; width: 100%; border-radius: 7px; overflow: hidden; position: relative; }
-        .fill { height: 100%; width: 0%; border-radius: 7px; transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; }
-        .bmr-line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(0,0,0,0.3); z-index: 5; border-right: 1px dashed rgba(255,255,255,0.7); }
-        .bmr-tag { position: absolute; top: -16px; font-size: 0.65rem; color: var(--text-sec); transform: translateX(-50%); font-weight: 700; text-transform: uppercase; }
-        .status-text { text-align: center; font-size: 0.85rem; font-weight: 600; margin-top: 10px; min-height: 1.2em; }
-
-        /* CUMULATIVE BOX (NUOVO) */
-        .cumulative-box { background: #e6f7ff; border: 1px solid #cceeff; border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 5px; }
-        .cumul-label { font-size: 0.8rem; font-weight: 600; color: #0056b3; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .cumul-value { font-size: 2rem; font-weight: 800; color: #007aff; line-height: 1; }
-        .pred-status { 
-            font-size: 0.85rem; font-weight: 600; 
-            margin-top: 15px; padding: 10px; 
-            border-radius: 10px; line-height: 1.4; 
-            border: 1px solid;
-            transition: all 0.3s ease;
-        }
-
-        /* WATER TRACKER */
-    .water-box { margin-top: 20px; padding: 15px; background: #eef7ff; border-radius: 16px; border: 1px solid #dbeafe; margin-bottom: 20px; }
-        .water-title { font-size: 0.85rem; font-weight: 700; color: #004494; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .water-grid { display: flex; justify-content: space-between; gap: 5px; }
-        .water-glass {
-            height: 35px; width: 25px; 
-            background: #d1e3fa; border-radius: 4px 4px 8px 8px;
-            cursor: pointer; transition: all 0.2s; position: relative;
-            border: 2px solid #a6c8ff; border-top: none;
-            opacity: 0.5;
-        }
-        .water-glass::before { content:''; position:absolute; top:0; left:0; width:100%; height:3px; background:rgba(0,0,0,0.1); }
+        /* WATER */
+        .water-box { margin-top: 20px; padding: 15px; background: #eef7ff; border-radius: 16px; border: 1px solid #dbeafe; margin-bottom: 20px; }
+        .water-title { font-size: 0.85rem; font-weight: 700; color: #004494; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .water-grid { display: flex; justify-content: space-between; gap: 4px; }
+        .water-glass { flex: 1; height: 40px; background: #d1e3fa; border-radius: 4px 4px 8px 8px; cursor: pointer; transition: all 0.2s; position: relative; border: 2px solid #a6c8ff; border-top: none; opacity: 0.6; }
         .water-glass.filled { background: #007aff; border-color: #005bb5; opacity: 1; }
-        .water-glass.next-up { opacity: 1; border-color: #007aff; box-shadow: 0 0 0 2px rgba(0,122,255,0.2); }
+        .water-glass.next-up { opacity: 1; border-color: #007aff; box-shadow: 0 0 0 2px rgba(0,122,255,0.3); }
 
-        /* MACROS HIDDEN */
-        details.macros-box summary::after { content: '📊'; }
-        .macro-grid { display: grid; gap: 14px; margin-top: 15px; }
-        .macro-item { display: flex; flex-direction: column; }
-        
-        /* SHOP / PROMO CARD */
+        /* SHOP & LISTS */
         .shop-card { background-color: var(--shop-bg); border: 1px solid var(--shop-border); border-radius: 18px; padding: 20px; text-align: left; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.06); }
         .shop-tag { background: #007aff; color: white; font-size: 0.65rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; display: inline-block; margin-bottom: 10px; }
         .shop-title { font-size: 1.15rem; font-weight: 800; color: var(--shop-text); margin: 0 0 10px 0; line-height: 1.3; }
         .shop-content { font-size: 0.85rem; color: #335d88; margin-bottom: 15px; line-height: 1.5; }
+        .shop-highlight { background: #ffffff; padding: 12px; border-radius: 10px; margin-top: 10px; display: block; border-left: 4px solid #007aff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-size: 0.85rem; line-height: 1.5; }
+        .btn-shop { background: linear-gradient(135deg, #007aff 0%, #0056b3 100%); color: white; text-decoration: none; display: block; text-align: center; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; margin-top: 15px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2); }
         
-        /* DETAILS ACCORDION */
         details.shop-details summary { color: #007aff; font-size: 0.85rem; font-weight: 600; padding: 8px 0; cursor: pointer; list-style: none; text-align: left; margin-top: 5px; display: flex; align-items: center; }
-        details.shop-details summary::-webkit-details-marker { display: none; }
-        details.shop-details summary::after { content: ' ▾'; font-size: 1rem; margin-left: 5px; }
-        details.shop-details[open] summary::after { content: ' ▴'; }
+        details.macros-box summary::after { content: '📊'; }
 
-        .shop-highlight { background: rgba(255,255,255,0.7); padding: 10px; border-radius: 10px; margin-top: 8px; display: block; border-left: 3px solid #007aff; box-shadow: 0 2px 5px rgba(0,0,0,0.03); font-size: 0.85rem; line-height: 1.4; }
-        
-        .btn-shop { background: linear-gradient(135deg, #007aff 0%, #0056b3 100%); color: white; text-decoration: none; display: block; text-align: center; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2); margin-top: 15px; }
-        .btn-shop:active { transform: scale(0.98); opacity: 0.9; }
-
-        /* FOOD LIST & EMPTY STATE */
+        /* CIBO ALLINEAMENTO */
         .food-list { list-style: none; padding: 0; margin: 0; min-height: 20px; }
         .food-item { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 14px 0; border-bottom: 1px solid #f0f0f5; align-items: center; }
-        .food-info { min-width: 0; text-align: left; } 
+        .food-info { min-width: 0; text-align: left; display: flex; flex-direction: column; } 
         .food-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
         .food-details { font-size: 0.75rem; color: var(--text-sec); margin-top: 3px; }
         .food-actions { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
         .food-cal { font-weight: 700; font-size: 0.95rem; }
         .btn-del { color: #ff3b30; font-size: 0.75rem; margin-top: 4px; cursor: pointer; background: none; border: none; padding: 0; font-weight: 500; }
-
-        .did-you-know {
-            background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #eee;
-            text-align: center; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-        }
-        .dyk-icon { font-size: 1.5rem; display: block; margin-bottom: 10px; }
-        .dyk-title { font-weight: 800; color: #007aff; font-size: 0.9rem; margin-bottom: 5px; text-transform: uppercase; }
-        .dyk-text { font-size: 0.85rem; color: #555; line-height: 1.5; }
-
-        /* ADD SECTION */
+        
         .add-box { border-top: 1px solid #eee; padding-top: 24px; display: flex; flex-direction: column; gap: 10px; }
         .row { display: flex; gap: 8px; }
         .btn-main { background: #1c1c1e; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .btn-main:active { transform: scale(0.98); }
 
-        /* MODALS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 9999;
-            display: none; justify-content: center; align-items: center;
-            padding: 20px; box-sizing: border-box; backdrop-filter: blur(5px);
-        }
-        .modal-box {
-            background: white; width: 100%; max-width: 350px;
-            border-radius: 20px; padding: 25px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            max-height: 90vh; overflow-y: auto;
-        }
+        .did-you-know { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #eee; text-align: center; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .dyk-icon { font-size: 1.5rem; display: block; margin-bottom: 10px; }
+        .dyk-title { font-weight: 800; color: #007aff; font-size: 0.9rem; margin-bottom: 5px; text-transform: uppercase; }
+        .dyk-text { font-size: 0.85rem; color: #555; line-height: 1.5; }
+
+        /* MODALS & TOAST */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; backdrop-filter: blur(5px); }
+        .modal-box { background: white; width: 100%; max-width: 350px; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: #1c1c1e; }
         .modal-text { font-size: 0.9rem; color: #444; line-height: 1.5; text-align: left; margin-bottom: 20px; }
-        .modal-btn {
-            background: #007aff; color: white; border: none; width: 100%;
-            padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer;
-        }
-        .reward-code {
-            background: #f0f0f5; border: 2px dashed #007aff; color: #007aff;
-            font-size: 1.4rem; font-weight: 800; padding: 15px;
-            border-radius: 10px; margin: 15px 0; display: block; text-align: center;
-        }
-
-        /* SMART TOAST */
-        .smart-toast {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: #1c1c1e; color: white; padding: 12px 20px; border-radius: 50px;
-            font-size: 0.85rem; box-shadow: 0 10px 20px rgba(0,0,0,0.25);
-            z-index: 10000; display: flex; align-items: center; gap: 10px;
-            opacity: 0; transition: opacity 0.5s; pointer-events: none; width: 90%; max-width: 350px;
-        }
+        .modal-btn { background: #007aff; color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; }
+        .reward-code { background: #f0f0f5; border: 2px dashed #007aff; color: #007aff; font-size: 1.4rem; font-weight: 800; padding: 15px; border-radius: 10px; margin: 15px 0; display: block; text-align: center; }
+        
+        .smart-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1c1c1e; color: white; padding: 12px 20px; border-radius: 50px; font-size: 0.85rem; box-shadow: 0 10px 20px rgba(0,0,0,0.25); z-index: 10000; display: flex; align-items: center; gap: 10px; opacity: 0; transition: opacity 0.5s; pointer-events: none; width: 90%; max-width: 350px; }
         .toast-visible { opacity: 1; pointer-events: auto; }
-        .toast-icon { font-size: 1.2rem; }
         .toast-btn { background: white; color: #1c1c1e; border:none; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; margin-left: auto; text-decoration: none; }
     </style>
 </head>
 <body>
 
-<div id="smartToast" class="smart-toast">
-    <span class="toast-icon">💡</span>
-    <span id="toastMsg">...</span>
-    <a href="https://www.pharmo.it" target="_blank" class="toast-btn">Vedi</a>
-</div>
+<div id="smartToast" class="smart-toast"><span class="toast-icon">💡</span><span id="toastMsg">...</span><a href="https://www.pharmo.it" target="_blank" class="toast-btn">Vedi</a></div>
 
 <div id="disclaimerModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-title">⚠️ Disclaimer Importante</div>
-        <div class="modal-text">
-            Benvenuto su <b>Pharmocounter</b>.<br><br>
-            Questa applicazione utilizza formule scientifiche standardizzate per la stima del fabbisogno calorico. I dati forniti sono <b>esclusivamente a scopo informativo</b>.<br><br>
-            <b>Non siamo medici.</b> L'utilizzo di questa app non sostituisce il parere di un medico o nutrizionista.<br><br>
-            <b>Privacy & Dati:</b> I dati inseriti (peso, età, obiettivi) restano esclusivamente sul tuo dispositivo. Nessuna informazione viene inviata a server esterni o a terze parti. Cancellando la cache, i dati andranno persi.<br><br>
-            <b>Responsabilità:</b> Pharmo.it e l'azienda gestore declinano ogni responsabilità per l'uso improprio delle informazioni. L'azienda non si assume responsabilità per eventuali perdite di dati, errori di calcolo, bug del sistema o malfunzionamenti tecnici dovuti ad aggiornamenti software.
-        </div>
+        <div class="modal-text">Benvenuto su <b>Pharmocounter</b>.<br><br>Questa applicazione utilizza formule scientifiche standardizzate per la stima del fabbisogno calorico. I dati forniti sono <b>esclusivamente a scopo informativo</b>.<br><br><b>Privacy:</b> I dati inseriti restano esclusivamente sul tuo dispositivo.</div>
         <button class="modal-btn" onclick="acceptTerms()">Ho capito e Accetto</button>
     </div>
 </div>
@@ -227,10 +142,9 @@
     <div class="modal-box">
         <div class="modal-title" id="rewardTitle">🎉 Complimenti!</div>
         <div class="modal-text" style="text-align:center;">
-            <span id="rewardMsg">Hai raggiunto un nuovo livello!</span><br><br>
-            Ecco il tuo premio per <b>Pharmo.it</b>:
+            <span id="rewardMsg">Nuovo livello!</span><br><br>Premio per <b>Pharmo.it</b>:
             <span class="reward-code" onclick="copyCode(this)" id="rewardCodeDisplay">...</span>
-            <small style="color:#888;">Clicca il codice per copiarlo</small>
+            <small style="color:#888;">Clicca per copiare</small>
         </div>
         <button class="modal-btn" onclick="closeReward('rewardModal')">Riscatta Ora</button>
     </div>
@@ -240,11 +154,9 @@
     <div class="modal-box">
         <div class="modal-title">💧 Campione di Idratazione!</div>
         <div class="modal-text" style="text-align:center;">
-            Hai bevuto correttamente per <b>3 giorni consecutivi</b>!<br>
-            La tua pelle e i tuoi muscoli ringraziano.<br><br>
-            Ecco un premio speciale per i drenanti:
+            Hai bevuto correttamente per <b>3 giorni</b>!<br><br>Ecco un premio per i drenanti:
             <span class="reward-code" onclick="copyCode(this)">PHARMOSPED</span>
-            <small style="color:#888;">Clicca il codice per copiarlo</small><br>
+            <small style="color:#888;">Clicca per copiare</small><br>
             <b style="color:var(--accent); margin-top:10px; display:block;">Usalo subito su pharmo.it per i tuoi prodotti preferiti!</b>
         </div>
         <button class="modal-btn" onclick="closeReward('waterRewardModal')">Riscatta Ora</button>
@@ -262,38 +174,12 @@
     <details class="card" id="profileDetails">
         <summary>Il tuo Profilo</summary>
         <div class="settings-grid">
-            <div>
-                <label>Sesso</label>
-                <select id="gender" onchange="calc()">
-                    <option value="m">Uomo</option>
-                    <option value="f">Donna</option>
-                </select>
-            </div>
-            <div>
-                <label>Età</label>
-                <input type="number" id="age" value="30" onchange="calc()">
-            </div>
-            <div>
-                <label>Peso (kg)</label>
-                <input type="number" id="weight" value="75" onchange="calc()">
-            </div>
-            <div>
-                <label>Altezza (cm)</label>
-                <input type="number" id="height" value="175" onchange="calc()">
-            </div>
+            <div><label>Sesso</label><select id="gender" onchange="calc()"><option value="m">Uomo</option><option value="f">Donna</option></select></div>
+            <div><label>Età</label><input type="number" id="age" value="30" onchange="calc()"></div>
+            <div><label>Peso Attuale (kg)</label><input type="number" id="weight" value="75" onchange="calc()"></div>
+            <div><label>Altezza (cm)</label><input type="number" id="height" value="175" onchange="calc()"></div>
             
-            <div style="grid-column: 1 / -1;">
-                <label>🎯 Peso Obiettivo (kg) <span style="font-weight: normal; color: #888;">(opzionale)</span></label>
-                <input type="number" id="targetWeightInput" placeholder="es. 65" onchange="calc()">
-            </div>
-            <div style="grid-column: 1 / -1;">
-                <label>📅 Data Obiettivo <span style="font-weight: normal; color: #888;">(opzionale)</span></label>
-                <input type="date" id="targetDateInput" onchange="calc()">
-            </div>
-
-            
-            <div style="grid-column: 1 / -1;">
-                <label>Livello Attività Fisica</label>
+            <div style="grid-column: 1 / -1;"><label>Livello Attività Fisica</label>
                 <select id="act" onchange="calc()">
                     <option value="1.2">Sedentario (Ufficio, no sport)</option>
                     <option value="1.375">Leggero (Sport 1-3 gg/sett)</option>
@@ -301,24 +187,39 @@
                     <option value="1.725">Attivo (Sport 6-7 gg/sett)</option>
                 </select>
             </div>
-            <div style="grid-column: 1 / -1;">
-                <label>Obiettivo</label>
+            <div style="grid-column: 1 / -1;"><label>Obiettivo Attuale</label>
                 <select id="goal" onchange="calc()">
                     <option value="lose_aggr">📉 Perdita Peso Standard (-20%)</option>
                     <option value="lose_athlete_15">✂️ Atleta / Cut Aggressivo (-15%)</option>
                     <option value="lose_cons">🛡️ Atleta / Cut Conservativo (-10%)</option>
-                    
                     <option value="detox">💧 Detox & Sgonfiamento (-5%)</option>
                     <option value="beauty">✨ Beauty & Anti-Age (Mantenimento)</option>
                     <option value="recomp">💪 Ricomposizione Corporea (High Prot)</option>
-                    
                     <option value="maintain" selected>⚖️ Mantenimento</option>
                     <option value="gain">📈 Aumento Muscolare (+10%)</option>
                 </select>
             </div>
-            <div class="info-box" id="scientificData">
-                Calcolo in corso...
-            </div>
+
+            <details class="card" style="grid-column: 1 / -1; margin-top: 10px; padding: 15px; background: #f0f4f8; border: 1px solid #dbeafe;">
+                <summary style="font-size: 0.9rem; color: #004494; font-weight: 700;">🎯 Obiettivi & Misure <span style="font-weight:400; opacity:0.7;">(Opzionali)</span></summary>
+                <div class="settings-grid" style="margin-top: 15px;">
+                    <div style="grid-column: 1 / -1; border-bottom: 1px solid #cceeff; padding-bottom: 5px; margin-bottom: 5px;">
+                        <span style="font-size:0.75rem; font-weight:700; color:#004494; text-transform:uppercase;">Il tuo Traguardo</span>
+                    </div>
+                    <div><label>Peso Obiettivo (kg)</label><input type="number" id="targetWeightInput" placeholder="es. 65" onchange="calc()"></div>
+                    <div><label>Data Obiettivo</label><input type="date" id="targetDateInput" onchange="calc()"></div>
+
+                    <div style="grid-column: 1 / -1; border-bottom: 1px solid #cceeff; padding-bottom: 5px; margin-bottom: 5px; margin-top: 15px;">
+                        <span style="font-size:0.75rem; font-weight:700; color:#004494; text-transform:uppercase;">Analisi Corporea (cm)</span>
+                    </div>
+                    <div><label>Addome (Ombelico)</label><input type="number" id="circ_abd" placeholder="cm" onchange="calc()"></div>
+                    <div><label>Coscia (Alta)</label><input type="number" id="circ_coscia" placeholder="cm" onchange="calc()"></div>
+                    <div id="braccio_input_wrapper" style="grid-column: 1 / -1;"><label>Braccio (Bicipite)</label><input type="number" id="circ_braccio" placeholder="cm" onchange="calc()"></div>
+                    <div class="info-box" id="circAnalysis" style="grid-column: 1 / -1; margin-top: 5px; background: white; border-color: #cceeff; color: #004494;">Compila per analisi settimanale.</div>
+                </div>
+            </details>
+
+            <div class="info-box" id="scientificData">Calcolo in corso...</div>
         </div>
     </details>
 
@@ -327,521 +228,413 @@
             <div class="big-val" id="remCal">0</div>
             <div class="sub-val">Kcal Rimanenti (Target: <span id="targetDisplay">0</span>)</div>
         </div>
-
         <div style="position: relative; margin-top: 30px;">
             <div id="bmrMarker" class="bmr-line"></div>
             <div id="bmrTag" class="bmr-tag">Basale</div>
-            
-            <div class="track" style="height: 26px; border-radius: 13px;">
-                <div class="fill" id="calBar" style="border-radius: 13px;"></div>
-            </div>
+            <div class="track" style="height: 26px; border-radius: 13px;"><div class="fill" id="calBar" style="border-radius: 13px;"></div></div>
         </div>
         <div class="status-text" id="statusText">...</div>
     </div>
     
-<div class="cumulative-box">
-    <div class="cumul-label">Deficit Totale Risparmiato (Stima)</div>
-    <div class="cumul-value" id="cumulativeDisplay">0 Kg</div>
-    <div class="pred-status" id="predictionStatus">Inserisci Obiettivo Peso e Data per l'analisi</div>
-</div>
-    
-<div style="text-align: center; margin-top: 15px;">
-    <span style="font-size: 0.9rem; color: var(--text-sec); font-weight: 600;">PRECISIONE GIORNALIERA:</span>
-    <div id="bullseyeBadge" class="precision-card card-default" onclick="showPrecisionInfo()">Inizia a loggare</div>
-<div style="text-align: center; margin-top: 15px; padding: 5px 0; margin-bottom: 30px;"> 
-    <span style="font-size: 0.9rem; color: #007aff; font-weight: 700;">SERIE PLATINO:</span>
-    <span id="platinumStreakDisplay" style="font-size: 1.1rem; color: var(--success); font-weight: 800; margin-left: 5px;">0 giorni</span>
-</div>
-<div class="shop-card" id="shopCard">
-    <span class="shop-tag">Protocollo Consigliato</span>
-    <h3 class="shop-title" id="shopTitle">...</h3>
-    <div class="shop-content" id="shopDesc">...</div>
-    <a href="https://www.pharmo.it" target="_blank" class="btn-shop">Acquista il Protocollo su Pharmo.it →</a>
-</div>
+    <div class="cumulative-box">
+        <div class="cumul-label">Deficit Totale Risparmiato (Stima)</div>
+        <div class="cumul-value" id="cumulativeDisplay">0 Kg</div>
+        <div class="pred-status" id="predictionStatus">Inserisci Peso/Data Obiettivo per l'Analisi 💡</div>
+    </div>
+        
+    <div style="text-align: center; margin-top: 15px;">
+        <span style="font-size: 0.9rem; color: var(--text-sec); font-weight: 600;">PRECISIONE GIORNALIERA:</span>
+        <div id="bullseyeBadge" class="precision-card card-default" onclick="showPrecisionInfo()">Inizia a loggare</div>
+    </div>
+    <div style="text-align: center; margin-top: 15px; padding: 5px 0; margin-bottom: 30px;"> 
+        <span style="font-size: 0.9rem; color: #007aff; font-weight: 700;">SERIE PLATINO:</span>
+        <span id="platinumStreakDisplay" style="font-size: 1.1rem; color: var(--success); font-weight: 800; margin-left: 5px;">0 giorni</span>
+    </div>
 
+    <div class="shop-card" id="shopCard">
+        <span class="shop-tag">Protocollo Consigliato</span>
+        <h3 class="shop-title" id="shopTitle">...</h3>
+        <div class="shop-content" id="shopDesc">...</div>
+        <a href="https://www.pharmo.it" target="_blank" class="btn-shop">Acquista su Pharmo.it →</a>
+    </div>
 
     <div class="water-box">
-        <div class="water-title">
-            <span>Idratazione & Detox</span>
-            <span id="waterCountDisplay">0/8</span>
-        </div>
-        <div class="water-grid" id="waterGrid">
-            </div>
-        <div style="font-size:0.7rem; color:#666; margin-top:8px; text-align:center;">
-            Segui l'ordine: 1 bicchiere ogni ora (8 al giorno)
-        </div>
+        <div class="water-title"><span>Idratazione & Detox</span><span id="waterCountDisplay">0/8</span></div>
+        <div class="water-grid" id="waterGrid"></div>
+        <div id="waterStatus" style="font-size:0.75rem; color:var(--accent); font-weight:600; margin-top:8px; text-align:center;">Sfida Drenante: Giorno 1/3</div>
     </div>
 
     <details class="card macros-box">
-        <summary>Dettaglio Nutrienti (Macro)</summary>
+        <summary>Dettaglio Nutrienti</summary>
         <div class="macro-grid">
-            <div class="macro-item">
-                <div class="bar-label">
-                    <span>Carboidrati</span>
-                    <span id="carbTxt" style="color:var(--carb-color)">0 / 0g</span>
-                </div>
-                <div class="track"><div class="fill" id="carbBar" style="background:var(--carb-color)"></div></div>
-            </div>
-            <div class="macro-item">
-                <div class="bar-label">
-                    <span>Proteine (Muscoli)</span>
-                    <span id="protTxt" style="color:var(--prot-color)">0 / 0g</span>
-                </div>
-                <div class="track"><div class="fill" id="protBar" style="background:var(--prot-color)"></div></div>
-            </div>
-            <div class="macro-item">
-                <div class="bar-label">
-                    <span>Grassi (Salute)</span>
-                    <span id="fatTxt" style="color:var(--fat-color)">0 / 0g</span>
-                </div>
-                <div class="track"><div class="fill" id="fatBar" style="background:var(--fat-color)"></div></div>
-            </div>
+            <div class="macro-item"><div class="bar-label"><span>Carboidrati</span><span id="carbTxt" style="color:var(--carb-color)">0 / 0g</span></div><div class="track"><div class="fill" id="carbBar" style="background:var(--carb-color)"></div></div></div>
+            <div class="macro-item"><div class="bar-label"><span>Proteine</span><span id="protTxt" style="color:var(--prot-color)">0 / 0g</span></div><div class="track"><div class="fill" id="protBar" style="background:var(--prot-color)"></div></div></div>
+            <div class="macro-item"><div class="bar-label"><span>Grassi</span><span id="fatTxt" style="color:var(--fat-color)">0 / 0g</span></div><div class="track"><div class="fill" id="fatBar" style="background:var(--fat-color)"></div></div></div>
         </div>
-    </details>
+        <div id="protAlert" style="margin-top: 15px;"></div> </details>
 
     <div class="add-box">
         <div class="row">
-            <input type="text" id="inName" placeholder="Nome Cibo (es. Pasta, Pollo...)" style="flex:2">
+            <input type="text" id="inName" placeholder="Cibo (es. Pasta, Pollo...)" style="flex:2">
             <input type="number" id="inCal" placeholder="Kcal" style="flex:1">
         </div>
         <div class="row small-inputs">
-            <input type="number" id="inCarb" placeholder="Carb">
-            <input type="number" id="inProt" placeholder="Prot">
-            <input type="number" id="inFat" placeholder="Grass">
+            <input type="number" id="inCarb" placeholder="Carb"><input type="number" id="inProt" placeholder="Prot"><input type="number" id="inFat" placeholder="Grass">
         </div>
-        <button class="btn-main" onclick="add()">Aggiungi al Diario</button>
+        <button class="btn-main" onclick="add()">Aggiungi</button>
     </div>
-
     <ul class="food-list" id="list"></ul>
-    
     <button onclick="resetAll()" style="background:none; border:1px solid #eee; padding:12px; border-radius:10px; color:#999; font-size:0.8rem; margin-top:20px; width:100%;">🗑️ Inizia nuova giornata</button>
 </div>
 
 <script>
+    // --- COSTANTI & INIT ---
     const d = new Date();
-    const options = { weekday: 'long', day: 'numeric', month: 'long' };
-    document.getElementById('dateText').innerText = d.toLocaleDateString('it-IT', options);
-
+    document.getElementById('dateText').innerText = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
     const KCAL_PER_KG_FAT = 7700; 
     const SECONDS_IN_DAY = 86400;
     const MAX_SAFE_DAILY_DEFICIT = 1000; 
-    const PT_MIN_MULTIPLIER = 1.8; // Soglia scientifica (1.8g/kg)
+    const PT_MIN_MULTIPLIER = 1.8;
 
-    // --- SHOP TEXT CONSTANTS ---
-    const stackLoss = `
-        Consiglio: <b>Pharmofit</b> (Metabolismo), <b>Pharmodren</b> (Drenante) e <b>Pharmofiller</b> (Elasticità).
-        <details class="shop-details">
-            <summary>Svela i dettagli del trattamento</summary>
-            <div class="shop-highlight" style="border-left-color:#ff3b30;">
-                <b>1. PHARMOFIT:</b> Sblocca il metabolismo stagnante. Caffè Verde e Arancio Amaro innescano la termogenesi.<br>
-                <i>Ottieni:</i> Dimagrimento costante senza abbuffate.
-            </div>
-            <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
-                <b>2. PHARMODREN:</b> Azione d'urto sui liquidi. Betulla e Ananas prosciugano la ritenzione che maschera i progressi.<br>
-                <i>Ottieni:</i> Addome sgonfio e gambe leggere.
-            </div>
-            <div class="shop-highlight" style="margin-top:5px; border-left-color:#007aff; background: #eef7ff;">
-                <b>3. PHARMOFILLER:</b> L'architetto della pelle (Collagene + Ialuronico). Ricostruisce l'impalcatura cutanea mentre ti svuoti.<br>
-                <i>Ottieni:</i> Una pelle che si "ritira" rimanendo soda.
-            </div>
-        </details>`;
+    // --- TESTI PROTOCOLLI ---
+    const stackLoss = `Consiglio: <b>Pharmofit</b>, <b>Pharmodren</b> e <b>Pharmofiller</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#ff3b30;"><b>1. PHARMOFIT:</b> Sblocca il metabolismo stagnante. Caffè Verde e Arancio Amaro innescano la termogenesi.<br></div><div class="shop-highlight" style="border-left-color:#34c759;"><b>2. PHARMODREN:</b> Azione d'urto sui liquidi. Betulla e Ananas prosciugano la ritenzione che maschera i progressi.<br></div><div class="shop-highlight" style="border-left-color:#007aff;"><b>3. PHARMOFILLER:</b> L'architetto della pelle (Collagene + Ialuronico). Ricostruisce l'impalcatura cutanea mentre ti svuoti.</div></details>`;
+    const stackDetox = `Consiglio: <b>Pharmodren</b> e <b>Pharmolain</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#34c759;"><b>1. PHARMODREN:</b> Elimina i liquidi in eccesso e le tossine accumulate.<br></div><div class="shop-highlight" style="border-left-color:#ffcc00;"><b>2. PHARMOLAIN:</b> Potente antinfiammatorio e digestivo (Bromelina).</div></details>`;
+    const stackBeauty = `Consiglio: <b>Pharmofiller</b> e <b>Pharmodren</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#007aff;"><b>1. PHARMOFILLER:</b> Collagene Marino + Acido Ialuronico.<br></div><div class="shop-highlight" style="border-left-color:#34c759;"><b>2. PHARMODREN:</b> La Vite Rossa migliora il microcircolo.</div></details>`;
+    const stackRecomp = `Consiglio: <b>Pharmofit</b> e <b>Pharmolain</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#ff3b30;"><b>1. PHARMOFIT:</b> Gestione dei carboidrati e spinta metabolica.<br></div><div class="shop-highlight" style="border-left-color:#ffcc00;"><b>2. PHARMOLAIN:</b> La Bromelina massimizza l'assorbimento delle proteine.</div></details>`;
+    const stackGain = `Consiglio: <b>Pharmofit</b>, <b>Pharmodren</b> e <b>Pharmofiller</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#ff3b30;"><b>1. PHARMOFIT:</b> Il Cromo dirige i carboidrati nei muscoli.<br></div><div class="shop-highlight" style="border-left-color:#34c759;"><b>2. PHARMODREN:</b> Definizione HD. Espelle l'acqua extracellulare.<br></div><div class="shop-highlight" style="border-left-color:#007aff;"><b>3. PHARMOFILLER:</b> Scudo anti-smagliature.</div></details>`;
 
-    const stackDetox = `
-        Consiglio: <b>Pharmodren</b> (Liquidi) e <b>Pharmolain</b> (Pancia Piatta).
-        <details class="shop-details">
-            <summary>Svela i dettagli del trattamento</summary>
-            <div class="shop-highlight" style="border-left-color:#34c759;">
-                <b>1. PHARMODREN:</b> Elimina i liquidi in eccesso e le tossine accumulate.<br>
-                <i>Ottieni:</i> Gambe leggere e riduzione della cellulite.
-            </div>
-            <div class="shop-highlight" style="margin-top:5px; border-left-color:#ffcc00;">
-                <b>2. PHARMOLAIN (Bromelina 500mg):</b> Potente antinfiammatorio e digestivo.<br>
-                <i>Ottieni:</i> Pancia piatta subito dopo i pasti.
-            </div>
-        </details>`;
-
-    const stackBeauty = `
-        Consiglio: <b>Pharmofiller</b> (Collagene) e <b>Pharmodren</b> (Microcircolo).
-        <details class="shop-details">
-            <summary>Svela i dettagli del trattamento</summary>
-            <div class="shop-highlight" style="border-left-color:#007aff; background: #eef7ff;">
-                <b>1. PHARMOFILLER:</b> Collagene Marino + Acido Ialuronico.<br>
-                <i>Ottieni:</i> Pelle luminosa, idratata e distesa.
-            </div>
-            <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
-                <b>2. PHARMODREN:</b> La Vite Rossa migliora il microcircolo.<br>
-                <i>Ottieni:</i> Migliore ossigenazione dei tessuti cutanei.
-            </div>
-        </details>`;
-
-    const stackRecomp = `
-        Consiglio: <b>Pharmofit</b> (Energia) e <b>Pharmolain</b> (Assimilazione).
-        <details class="shop-details">
-            <summary>Svela i dettagli del trattamento</summary>
-            <div class="shop-highlight" style="border-left-color:#ff3b30;">
-                <b>1. PHARMOFIT:</b> Gestione dei carboidrati e spinta metabolica.<br>
-                <i>Ottieni:</i> Energia esplosiva per allenamenti intensi.
-            </div>
-            <div class="shop-highlight" style="margin-top:5px; border-left-color:#ffcc00;">
-                <b>2. PHARMOLAIN:</b> La Bromelina massimizza l'assorbimento delle proteine.<br>
-                <i>Ottieni:</i> Massimo recupero muscolare.
-            </div>
-        </details>`;
-
-    const stackGain = `
-         Consiglio: <b>Pharmofit</b> (Controllo), <b>Pharmodren</b> (Definizione) e <b>Pharmofiller</b> (Struttura).
-        <details class="shop-details">
-            <summary>Svela i dettagli del trattamento</summary>
-            <div class="shop-highlight" style="border-left-color:#ff3b30;">
-                <b>1. PHARMOFIT:</b> Il Cromo dirige i carboidrati nei muscoli.<br>
-                <i>Ottieni:</i> Crescita muscolare pulita (Clean Bulk).
-            </div>
-            <div class="shop-highlight" style="margin-top:5px; border-left-color:#34c759;">
-                <b>2. PHARMODREN:</b> Definizione HD. Espelle l'acqua extracellulare.<br>
-                <i>Ottieni:</i> Muscoli duri, separati e vascolarizzati.
-            </div>
-            <div class="shop-highlight" style="margin-top:5px; border-left-color:#007aff; background: #eef7ff;">
-                <b>3. PHARMOFILLER:</b> Scudo anti-smagliature.<br>
-                <i>Eviti:</i> Le smagliature da crescita rapida.
-            </div>
-        </details>`;
+    // --- STATO E VARIABILI GLOBALI ---
+    let foods = JSON.parse(localStorage.getItem('foods_v3')) || [];
+    let waterCount = parseInt(localStorage.getItem('water_count')) || 0;
+    let cumulativeDeficit = parseFloat(localStorage.getItem('cumulative_deficit')) || 0;
+    let streakCount = parseInt(localStorage.getItem('streak_days')) || 1;
     
-    // --- DATE LOGIC (SHIFT 04:00 AM) ---
-    const realNow = new Date(); 
-    const now = new Date(realNow);
-    now.setHours(now.getHours() - 4);
-    const todayStr = now.toDateString(); 
-    
-    // --- LOAD PERSISTENT DATA ---
+    // Recupero Profilo
     let savedProfile = localStorage.getItem('profile_v3');
     let state = JSON.parse(savedProfile) || {
         g: 'm', age: 30, w: 75, h: 175, act: 1.375, goal: 'maintain', 
-        targetW: 0, targetD: '' 
+        targetW: 0, targetD: '', circ_abd: 0, circ_coscia: 0, circ_braccio: 0
     };
-    
-    let foods = JSON.parse(localStorage.getItem('foods_v3')) || [];
-    let waterCount = parseInt(localStorage.getItem('water_count')) || 0;
-    
-    // CUMULATIVE TRACKING VARIABLES
-    let cumulativeDeficit = parseFloat(localStorage.getItem('cumulative_deficit')) || 0;
-    let lastDayTotalConsumed = parseFloat(localStorage.getItem('last_day_total_consumed')) || 0;
-    let lastDayTarget = parseFloat(localStorage.getItem('last_day_target')) || 0;
 
-    let streakCount = parseInt(localStorage.getItem('streak_days')) || 1;
-    let lastVisitDate = localStorage.getItem('last_visit_date');
+    // Variabili Calcolate Globale
+    let TGT_CAL = 0, TGT_C = 0, TGT_P = 0, TGT_F = 0, BMR = 0, TDEE = 0, PT_MIN_G = 0;
 
-    // --- AUTOMATIC DAILY RESET & CUMULATIVE UPDATE (MASTER CHECK) ---
+    // --- RESET GIORNALIERO (4:00 AM) ---
+    const now = new Date(); now.setHours(now.getHours() - 4);
+    const todayStr = now.toDateString();
+    
     if (localStorage.getItem('app_date') !== todayStr) {
-        if (lastDayTarget > 0) {
-            let lastDayDeficit = lastDayTarget - lastDayTotalConsumed;
-            cumulativeDeficit += lastDayDeficit;
+        let lastTarget = parseFloat(localStorage.getItem('last_day_target')) || 0;
+        let lastConsumed = parseFloat(localStorage.getItem('last_day_total_consumed')) || 0;
+        
+        if (lastTarget > 0) {
+            cumulativeDeficit += (lastTarget - lastConsumed);
             localStorage.setItem('cumulative_deficit', cumulativeDeficit);
         }
-        
-        // --- MORNING PROTEIN RISK CHECK (YESTERDAY'S DATA) ---
-        let lastDayPTMinG = parseFloat(localStorage.getItem('last_day_pt_min_g')) || 0;
-        let lastDayCurP = parseFloat(localStorage.getItem('last_day_cur_p')) || 0;
-        
-        if (lastDayPTMinG > 0 && lastDayCurP < lastDayPTMinG && lastDayTarget > 0) {
-             showToast(`⚠️ Quota Proteica Rischio! Hai assunto solo ${lastDayCurP}g su ${lastDayPTMinG}g ieri. Proteggi i tuoi muscoli!`);
-        }
-        // ----------------------------------------------------
-        
-        // --- LOGICA PLATINO STREAK (NUOVO - 5 Giorni Oro) ---
+
+        // Platino Check (5 giorni)
         const lastPrecision = parseInt(localStorage.getItem('last_day_precision')) || 0;
-        let platinumStreak = parseInt(localStorage.getItem('platinum_streak')) || 0;
-        
-        // La serie si aggiorna solo se il giorno precedente era ORO (livello 3)
-        if (lastPrecision >= 3) { 
-            platinumStreak++;
-        } else {
-            platinumStreak = 0; // Reset se ha mancato l'Oro
-        }
-        
-        localStorage.setItem('platinum_streak', platinumStreak);
-        
-         if (platinumStreak >= 5 && !localStorage.getItem('claimed_platinum_5')) {
-            // SBLOCCA IL PLATINO DOPO 5 GIORNI CONSECUTIVI DI ORO
-            const rewardCodePlatinum = "PHARMOSPED"; 
-            
-            // MESSAGGIO AGGIORNATO CON INVITO ALL'AZIONE
-            alert(`💎 PLATINO SBLOCCATO! 5 giorni di precisione Oro!\n\nIl tuo premio speciale è: ${rewardCodePlatinum}\n\nUsalo subito su pharmo.it per i tuoi prodotti preferiti!`);
+        let pStreak = parseInt(localStorage.getItem('platinum_streak')) || 0;
+        if (lastPrecision >= 3) pStreak++; else pStreak = 0;
+        localStorage.setItem('platinum_streak', pStreak);
+
+        if (pStreak >= 5 && !localStorage.getItem('claimed_platinum_5')) {
+            alert("💎 PLATINO SBLOCCATO! 5 giorni di precisione Oro!\n\nIl tuo premio speciale è: PHARMO5DAYS\n\nUsalo subito su pharmo.it per i tuoi prodotti preferiti!");
             window.open('https://www.pharmo.it', '_blank');
             localStorage.setItem('claimed_platinum_5', 'true');
         }
-       
 
-        
-        localStorage.setItem('platinum_streak', platinumStreak);
-        
-        if (platinumStreak >= 7 && !localStorage.getItem('claimed_platinum')) {
-            // SBLOCCA IL PLATINO DOPO 7 GIORNI CONSECUTIVI DI ORO
-            alert("💎 PLATINO SBLOCCATO! 7 giorni di precisione Oro! Riscatta il tuo premio speciale!");
-            localStorage.setItem('claimed_platinum', 'true');
-            // Nota: Qui puoi aggiungere la logica per mostrare la tua modal Platinum dedicata
-        }
-        // ------------------------------------
-        
+        // Reset Giornaliero
+        if (state.circ_abd > 0) localStorage.setItem('last_week_abd', state.circ_abd);
+        if (state.circ_coscia > 0) localStorage.setItem('last_week_coscia', state.circ_coscia);
+        if (state.circ_braccio > 0) localStorage.setItem('last_week_braccio', state.circ_braccio);
+
         localStorage.setItem('foods_v3', JSON.stringify([])); 
-        localStorage.setItem('water_count', 0); 
-        localStorage.setItem('water_last_time', 0); 
-        localStorage.setItem('app_date', todayStr); 
-
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        if (lastVisitDate !== todayStr) {
-            if (lastVisitDate === yesterday.toDateString()) {
-                streakCount++;
-            } else {
-                streakCount = 1;
-            }
+        localStorage.setItem('water_count', 0);
+        localStorage.setItem('water_last_time', 0);
+        localStorage.setItem('app_date', todayStr);
+        
+        // Streak Visit
+        let lastVisit = localStorage.getItem('last_visit_date');
+        let yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+        if (lastVisit !== todayStr) {
+            streakCount = (lastVisit === yesterday.toDateString()) ? streakCount + 1 : 1;
             localStorage.setItem('streak_days', streakCount);
             localStorage.setItem('last_visit_date', todayStr);
         }
+        foods = []; waterCount = 0;
     }
 
-    // --- DISCLAIMER LOGIC ---
-    if (!localStorage.getItem('terms_accepted_v1')) {
-        document.getElementById('disclaimerModal').style.display = 'flex';
-    }
-
-    function acceptTerms() {
-        localStorage.setItem('terms_accepted_v1', 'true');
-        document.getElementById('disclaimerModal').style.display = 'none';
-        if (!localStorage.getItem('profile_v3')) {
-            document.getElementById('profileDetails').setAttribute('open', 'true');
-        }
-    }
-
-
-    // --- STREAK & REWARD LOGIC ---
-    document.getElementById('streakDisplay').innerText = `🔥 ${streakCount}gg`;
-    
-    // Aggiornamento display Platino Streak
-    const platinumStreak = parseInt(localStorage.getItem('platinum_streak')) || 0;
-    const streakElement = document.getElementById('platinumStreakDisplay');
-    if (streakElement) {
-        streakElement.innerText = `${platinumStreak} / 5 giorni ORO`;
-        if (platinumStreak >= 5) { // ORA CONTROLLA 5
-             streakElement.style.color = '#FFD700'; // Platino/Oro
-             streakElement.innerText = `💎 PLATINO ATTIVO (${platinumStreak}gg)`;
-        } else if (platinumStreak > 0) {
-             streakElement.style.color = 'var(--orange)'; // Se la serie è iniziata ma non completa
-        }
-    }
-
-
-        function showStreakInfo() {
-        const streakCount = parseInt(localStorage.getItem('streak_days')) || 0; 
-        let alertMessage = "LA SFIDA DI PHARMO.IT\n\nUsa l'applicazione con costanza per sbloccare Codici Sconto Esclusivi!\n\nLivelli:\n- 7 Giorni: Bronzo\n- 14 Giorni: Argento\n- 30 Giorni: Oro\n\nAttuale: " + streakCount + " giorni.\n\n⚠️ NOTA: I codici sconto cambiano regolarmente! Utilizzali in fretta appena sbloccati.\n\n💡 IMPORTANTE: Ricordati di aggiornare il tuo peso nel profilo ogni 7 giorni.";
-        
-        let rewardCode = null;
-
-        // I codici e i flag devono essere sempre aggiornati se si cambia la logica
-        if (streakCount >= 30 && !localStorage.getItem('claimed_gold_30')) {
-            rewardCode = "PHARMO30GOLD";
-            localStorage.setItem('claimed_gold_30', 'true');
-        } else if (streakCount >= 14 && !localStorage.getItem('claimed_silver_14')) {
-            rewardCode = "PHARMO14SILVER";
-            localStorage.setItem('claimed_silver_14', 'true');
-        } else if (streakCount >= 7 && !localStorage.getItem('claimed_bronze_7')) {
-            rewardCode = "PHARMO7BRONZE";
-            localStorage.setItem('claimed_bronze_7', 'true');
-        }
-
-        if (rewardCode) {
-            // QUI AGGIUNGIAMO LA FRASE E IL CODICE
-            alertMessage = `Complimenti! Hai sbloccato un nuovo premio!\n\nIl tuo codice sconto è: ${rewardCode}\n\nUsalo subito su pharmo.it per i tuoi prodotti preferiti!`;
-        }
-        
-        alert(alertMessage);
-
-        // APRE IL SITO SOLO SE È STATO SBLOCCATO UN NUOVO CODICE
-        if (rewardCode) {
-            window.open('https://www.pharmo.it', '_blank');
-        }
-    }
-
-        // --- STREAK & REWARD LOGIC (Continua) ---
-    // ... (La funzione showStreakInfo() che hai appena trovato finisce qui) ...
-
-    function showPrecisionInfo() {
-    const platinumStreak = parseInt(localStorage.getItem('platinum_streak')) || 0;
-    const msg = `🏆 SISTEMA CARTE PRECISIONE PHARMO 🏆
-
-Il tuo obiettivo è usare tutte le calorie (TGT CAL) a disposizione, senza sforare!
-
-**CRITERI GIORNALIERI (Precisione Massima):**
-   ‣ ORO 🥇:  Rimanere entro 50 Kcal dal Target (massimo deficit).
-   ‣ ARGENTO 🥈: Rimanere tra 51 Kcal e 100 Kcal dal Target.
-   ‣ BRONZO 🥉: Rimanere tra 101 Kcal e 200 Kcal dal Target.
-   
-   (Lasciare >200 Kcal o Sforare = Serie interrotta.)
-
-**RICONOSCIMENTO PLATINO (Costanza):**
-La Carta Platino è il traguardo massimo a lungo termine!
-Si sblocca mantenendo la **Carta ORO (Perfetto)** per 5 giorni consecutivi.
-
-   ‣ Stato attuale: ${platinumStreak} giorni consecutivi Oro.
-   
-Mantieni la serie Oro per sbloccare la **Serie Platino** al 5° giorno, e ottenere un codice esclusivo da usare su pharmo.it!`; 
-    
-    alert(msg);
-}
-
-
-    // Check App Milestones (7, 14, 30)
-    let rewardCode = "";
-    let rewardTitleText = "";
-    let rewardMsgText = "";
-    let showReward = false;
-
-    if (streakCount === 7 && !localStorage.getItem('claimed_7')) {
-        rewardCode = "PHARMOAPP"; 
-        rewardTitleText = "🎖️ Livello Bronzo!";
-        rewardMsgText = "Hai completato la tua prima settimana!";
-        showReward = true;
-        localStorage.setItem('claimed_7', 'true');
-    } else if (streakCount === 14 && !localStorage.getItem('claimed_14')) {
-        rewardCode = "PHARMOAPP14";
-        rewardTitleText = "🥈 Livello Argento!";
-        rewardMsgText = "Due settimane di costanza assoluta!";
-        showReward = true;
-        localStorage.setItem('claimed_14', 'true');
-    } else if (streakCount === 30 && !localStorage.getItem('claimed_30')) {
-        rewardCode = "PHARMOAPP30";
-        rewardTitleText = "🥇 Livello Oro!";
-        rewardMsgText = "Un mese intero! Sei una leggenda.";
-        showReward = true;
-        localStorage.setItem('claimed_30', 'true');
-    }
-
-    // Show Reward Modal if triggered
-    if (showReward) {
-        document.getElementById('rewardTitle').innerText = rewardTitleText;
-        document.getElementById('rewardMsg').innerText = rewardMsgText;
-        document.getElementById('rewardCodeDisplay').innerText = rewardCode;
-        document.getElementById('rewardModal').style.display = 'flex';
-    }
-
-    // --- WATER STREAK LOGIC (3 DAYS -> PHARMOSPED) ---
-    function checkWaterStreak() {
-        let wStreak = parseInt(localStorage.getItem('water_streak_days')) || 0;
-        let lastWaterWin = localStorage.getItem('last_water_win_date');
-        
-        if (lastWaterWin !== todayStr) {
-            const yesterday = new Date(now);
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            if (lastWaterWin === yesterday.toDateString()) {
-                wStreak++;
-            } else {
-                wStreak = 1;
-            }
-            
-            localStorage.setItem('water_streak_days', wStreak);
-            localStorage.setItem('last_water_win_date', todayStr);
-            
-            if (wStreak >= 3 && !localStorage.getItem('water_reward_claimed')) {
-                document.getElementById('waterRewardModal').style.display = 'flex';
-            } else {
-                showToast(`Ottimo! 💧 Serie idratazione: ${wStreak}/3 giorni.`);
-            }
-        }
-    }
-
-    function closeReward(modalId) {
-        if(modalId === 'rewardModal') localStorage.setItem('reward_claimed', 'true');
-        if(modalId === 'waterRewardModal') localStorage.setItem('water_reward_claimed', 'true');
-        
-        document.getElementById(modalId).style.display = 'none';
-        window.open('https://www.pharmo.it', '_blank');
-    }
-
-    function copyCode(element) {
-        const code = element.innerText;
-        navigator.clipboard.writeText(code);
-        alert("Codice " + code + " copiato!");
-    }
-    
-    // --- WATER TRACKER LOGIC (SEQUENTIAL + TIMER) ---
-    function renderWater() {
-        const grid = document.getElementById('waterGrid');
-        grid.innerHTML = '';
-        for(let i=0; i<8; i++) {
-            const glass = document.createElement('div');
-            let className = 'water-glass';
-            if (i < waterCount) className += ' filled';
-            if (i === waterCount) className += ' next-up'; 
-            
-            glass.className = className;
-            glass.onclick = () => toggleWater(i);
-            grid.appendChild(glass);
-        }
-        document.getElementById('waterCountDisplay').innerText = `${waterCount}/8`;
-        localStorage.setItem('water_count', waterCount);
-    }
-
-    function toggleWater(idx) {
-        const currentTime = Date.now();
-        const lastDrink = parseInt(localStorage.getItem('water_last_time')) || 0;
-        const oneHour = 60 * 60 * 1000;
-
-        if (idx === waterCount) {
-            if (waterCount > 0 && (currentTime - lastDrink < oneHour)) {
-                let minutesLeft = Math.ceil((oneHour - (currentTime - lastDrink)) / 60000);
-                showToast(`⏳ Aspetta ancora ${minutesLeft} min per la corretta idratazione.`);
-                return;
-            }
-            waterCount++;
-            localStorage.setItem('water_last_time', currentTime);
-            renderWater();
-            
-            if (waterCount === 8) {
-                checkWaterStreak();
-            } else {
-                showToast("Idratazione registrata! 💧 Continua per la Sfida 3 Giorni.");
-            }
-        } 
-        else if (idx === waterCount - 1) {
-            waterCount--;
-            renderWater();
-        }
-    }
-
-    // --- SMART ALERTS LOGIC (SERVERLESS) ---
+    // --- FUNZIONI UTILI ---
     function showToast(msg) {
         const t = document.getElementById('smartToast');
         document.getElementById('toastMsg').innerText = msg;
         t.classList.add('toast-visible');
         setTimeout(() => t.classList.remove('toast-visible'), 6000);
     }
+    
+    function copyCode(el) { navigator.clipboard.writeText(el.innerText); alert("Codice copiato!"); }
+    function closeReward(id) { 
+        if(id==='waterRewardModal') window.open('https://www.pharmo.it', '_blank');
+        document.getElementById(id).style.display = 'none'; 
+        localStorage.setItem(id === 'rewardModal' ? 'reward_claimed' : 'water_reward_claimed', 'true');
+    }
+    function acceptTerms() { document.getElementById('disclaimerModal').style.display = 'none'; localStorage.setItem('terms_accepted_v1', 'true'); document.getElementById('profileDetails').open = true; }
 
-    function checkSmartAdvice(name, cal, curCarb, maxCarb) {
-        if (curCarb > maxCarb) {
-            showToast("Troppi Carboidrati? Gestiscili con Pharmofit.");
-            return;
+    // --- LOGICA PRINCIPALE (CALC) ---
+    function calc() {
+        // Aggiorna Stato da Input
+        state.g = document.getElementById('gender').value;
+        state.age = parseFloat(document.getElementById('age').value);
+        state.w = parseFloat(document.getElementById('weight').value);
+        state.h = parseFloat(document.getElementById('height').value);
+        state.act = parseFloat(document.getElementById('act').value);
+        state.goal = document.getElementById('goal').value;
+        state.targetW = parseFloat(document.getElementById('targetWeightInput').value) || 0;
+        state.targetD = document.getElementById('targetDateInput').value || '';
+        state.circ_abd = parseFloat(document.getElementById('circ_abd').value) || 0;
+        state.circ_coscia = parseFloat(document.getElementById('circ_coscia').value) || 0;
+        state.circ_braccio = parseFloat(document.getElementById('circ_braccio').value) || 0;
+        localStorage.setItem('profile_v3', JSON.stringify(state));
+
+        // BMR & TDEE
+        let s = (10 * state.w) + (6.25 * state.h) - (5 * state.age);
+        BMR = (state.g === 'm') ? s + 5 : s - 161;
+        TDEE = Math.round(BMR * state.act);
+
+        // Goal Logic
+        let adj = { 'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 'detox': 0.95, 'beauty': 1.0, 'recomp': 0.95, 'maintain': 1.0, 'gain': 1.10 };
+        TGT_CAL = Math.round(TDEE * adj[state.goal]);
+        if (TGT_CAL < BMR) TGT_CAL = Math.round(BMR);
+
+        // Text & Macros
+        let p_r, c_r, f_r, gTxt, sTit, sDes;
+        let reqHighProt = false;
+
+        if (state.goal.startsWith('lose')) {
+            sTit = "Protocollo Total Body 3-Fasi"; sDes = stackLoss;
+            if (state.goal === 'lose_aggr') { c_r=0.4; p_r=0.3; f_r=0.3; gTxt="Perdita Peso Standard (-20%)"; reqHighProt=false; }
+            else if (state.goal === 'lose_athlete_15') { c_r=0.35; p_r=0.35; f_r=0.3; gTxt="Atleta Cut Aggressivo (-15%)"; reqHighProt=true; }
+            else { c_r=0.4; p_r=0.3; f_r=0.3; gTxt="Atleta Cut Conservativo (-10%)"; reqHighProt=true; }
+        } else if (state.goal === 'recomp') {
+            c_r=0.35; p_r=0.35; f_r=0.3; gTxt="Ricomposizione Corporea"; sTit="Protocollo Recomp"; sDes=stackRecomp; reqHighProt=true;
+        } else {
+            // Defaults for Detox, Beauty, Maintain, Gain
+            c_r=0.5; p_r=0.2; f_r=0.3; 
+            if(state.goal==='detox') { gTxt="Detox (-5%)"; sTit="Protocollo Detox"; sDes=stackDetox; }
+            else if(state.goal==='beauty') { gTxt="Beauty (Mantenimento)"; sTit="Protocollo Glow"; sDes=stackBeauty; c_r=0.45; p_r=0.25; }
+            else if(state.goal==='gain') { gTxt="Surplus (+10%)"; sTit="Protocollo Struttura"; sDes=stackGain; }
+            else { gTxt="Mantenimento"; sTit="Protocollo Definizione"; sDes=stackGain; }
         }
-        const lowerName = name.toLowerCase();
-        const dirtyKeywords = ['pizza', 'sushi', 'fritto', 'burger', 'mc', 'kebab', 'sale', 'salame', 'insaccati', 'patatine'];
-        if (dirtyKeywords.some(k => lowerName.includes(k))) {
-            showToast("Pasto salato? Pharmodren riduce la ritenzione.");
-            return;
+
+        // Soglia Proteica Minima (Solo per Atleti/Recomp)
+        PT_MIN_G = reqHighProt ? Math.round(state.w * PT_MIN_MULTIPLIER) : 0;
+        localStorage.setItem('pt_min_g', PT_MIN_G);
+
+        // Aggiornamento UI Calcoli
+        TGT_C = Math.round((TGT_CAL * c_r)/4); TGT_P = Math.round((TGT_CAL * p_r)/4); TGT_F = Math.round((TGT_CAL * f_r)/9);
+        document.getElementById('shopTitle').innerText = sTit; document.getElementById('shopDesc').innerHTML = sDes;
+        document.getElementById('targetDisplay').innerText = TGT_CAL;
+        document.getElementById('scientificData').innerHTML = `Metabolismo Basale (BMR): <b>${Math.round(BMR)}</b> kcal<br>Fabbisogno Totale (TDEE): <b>${TDEE}</b> kcal<br>Piano: <b>${gTxt}</b>`;
+
+        // BMR Bar Marker
+        let bmrPct = Math.min((BMR / TGT_CAL) * 100, 95);
+        document.getElementById('bmrMarker').style.left = bmrPct + "%";
+        document.getElementById('bmrTag').style.left = bmrPct + "%";
+
+        // Visibilità Braccio
+        const armWrap = document.getElementById('braccio_input_wrapper');
+        if(armWrap) armWrap.style.display = ['gain', 'recomp', 'lose_athlete_15', 'lose_cons'].includes(state.goal) ? 'block' : 'none';
+
+        // Analisi Previsionale e Misure
+        updatePredictionStatus();
+        checkCircumference();
+        render();
+        localStorage.setItem('last_day_target', TGT_CAL);
+    }
+
+    // --- RENDER UI ---
+    function render() {
+        const list = document.getElementById('list'); list.innerHTML = '';
+        let curCal=0, curC=0, curP=0, curF=0;
+        
+        foods.slice().reverse().forEach((f, idx) => {
+            curCal += f.k; curC += f.c; curP += f.p; curF += f.f;
+            const li = document.createElement('li'); li.className = 'food-item';
+            li.innerHTML = `<div class="food-info"><div class="food-name">${f.n}</div><div class="food-details">C:${f.c} P:${f.p} G:${f.f}</div></div><div class="food-actions"><span class="food-cal">${f.k}</span><button class="btn-del" onclick="rem(${foods.length - 1 - idx})">elimina</button></div>`;
+            list.appendChild(li);
+        });
+
+        // Totali e Barre
+        let diff = TGT_CAL - curCal;
+        document.getElementById('remCal').innerText = diff;
+        document.getElementById('remCal').style.color = diff < 0 ? 'var(--danger)' : 'var(--text-main)';
+        
+        let pct = Math.min((curCal / TGT_CAL) * 100, 100);
+        let barColor = "var(--success)"; let msgText = "✅ Ottimo lavoro!";
+        if (curCal < BMR) { barColor = "var(--warn)"; msgText = "⚠️ Energia insufficiente"; }
+        else if (curCal > TGT_CAL) { barColor = "var(--danger)"; msgText = "⛔ Limite superato"; }
+        document.getElementById('calBar').style.width = pct + "%";
+        document.getElementById('calBar').style.background = barColor;
+        document.getElementById('statusText').innerText = msgText; document.getElementById('statusText').style.color = barColor;
+
+        setBar('carb', curC, TGT_C); setBar('prot', curP, TGT_P); setBar('fat', curF, TGT_F);
+
+        // Carte Precisione
+        const badge = document.getElementById('bullseyeBadge');
+        let cardC='card-default', cardT='Inizia a loggare';
+        if(diff < 0) { cardC='card-default'; cardT=`❌ SFORATO di ${Math.abs(diff)} Kcal`; }
+        else if(diff<=50 && curCal>0) { cardC='card-gold'; cardT='🥇 ORO (Perfetto)'; }
+        else if(diff<=100 && curCal>0) { cardC='card-silver'; cardT='🥈 ARGENTO (Ottima)'; }
+        else if(diff<=200 && curCal>0) { cardC='card-bronze'; cardT='🥉 BRONZO (Buona)'; }
+        else if(curCal>0) { cardC='card-default'; cardT='⚠️ INCOMPLETO'; }
+        badge.className = `precision-card ${cardC}`; badge.innerText = cardT;
+        
+        let precLvl=0; 
+        if(cardC==='card-gold') precLvl=3; else if(cardC==='card-silver') precLvl=2; else if(cardC==='card-bronze') precLvl=1;
+        localStorage.setItem('last_day_precision', precLvl);
+
+        // Avviso Proteico (SOLO ATLETI/RECOMP)
+        const highProtGoals = ['lose_athlete_15', 'lose_cons', 'recomp'];
+        const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
+        let alertHTML = '';
+        
+        if (highProtGoals.includes(state.goal) && ptCheck > 0 && curCal > 0) {
+            if (curP < ptCheck) alertHTML = `<div style="color:var(--orange); font-size:0.8rem; font-weight:700; background:#fff5e6; padding:8px; border-radius:8px; margin-top:10px; border:1px solid var(--orange); text-align: center;">⚠️ **Attenzione Atleta!** Quota minima proteica (${ptCheck}g) non raggiunta. Proteggi i muscoli!</div>`;
+            else alertHTML = `<div style="color:var(--success); font-size:0.8rem; font-weight:600; margin-top:10px; text-align: center;">✅ Ottimo! Muscoli Protetti (${curP}g su ${ptCheck}g minimi).</div>`;
+        }
+        document.getElementById('protAlert').innerHTML = alertHTML;
+
+        // Cumulative
+        document.getElementById('cumulativeDisplay').innerText = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1) + " Kg";
+    }
+
+    function setBar(id, val, max) {
+        document.getElementById(id+'Bar').style.width = Math.min((val/max)*100, 100) + "%";
+        document.getElementById(id+'Txt').innerText = `${val} / ${max}g`;
+    }
+
+    // --- FUNZIONI LOGICHE EXTRA ---
+    function checkCircumference() {
+        const lastAbd = parseFloat(localStorage.getItem('last_week_abd')) || 0;
+        const lastCoscia = parseFloat(localStorage.getItem('last_week_coscia')) || 0;
+        const lastBraccio = parseFloat(localStorage.getItem('last_week_braccio')) || 0;
+        
+        let msg = "Compila per analisi settimanale.";
+        if(lastAbd > 0 && state.circ_abd > 0) {
+            let d = state.circ_abd - lastAbd;
+            msg = `Addome: ${d>0?'+':''}${d.toFixed(1)} cm`;
+            if (d < -0.5) showToast("✅ Ottimo! Addome ridotto.");
+            else if (d > 0.5 && ['lose_aggr','detox'].includes(state.goal)) showToast("⚠️ Addome aumentato! Gonfiore? Usa Pharmolain.");
+        }
+        document.getElementById('circAnalysis').innerText = msg;
+    }
+
+    function updatePredictionStatus() {
+        const box = document.getElementById('predictionStatus');
+        if (!state.targetD || state.targetW <= 0) { box.innerHTML = "Inserisci Peso/Data Obiettivo per l'Analisi 💡"; box.style.background="#eef7ff"; return; }
+        
+        const daysLeft = Math.ceil((new Date(state.targetD) - new Date()) / (1000 * 86400));
+        if (daysLeft <= 0) { box.innerHTML = "📅 Data scaduta!"; box.style.background="#ffc9c9"; return; }
+        
+        const needDeficit = ((state.w - state.targetW) * KCAL_PER_KG_FAT) / daysLeft;
+        const currDeficit = TDEE - TGT_CAL;
+        
+        if (currDeficit >= needDeficit) { box.innerHTML = "✅ Piano Efficace! Raggiungerai l'obiettivo."; box.style.background="#c8f9c8"; }
+        else { box.innerHTML = "⛔ Piano lento. Scegli un taglio più aggressivo."; box.style.background="#ffc9c9"; }
+    }
+
+    // --- ACTIONS ---
+    function add() {
+        let n = document.getElementById('inName').value;
+        let k = parseInt(document.getElementById('inCal').value);
+        let c = parseInt(document.getElementById('inCarb').value)||0;
+        let p = parseInt(document.getElementById('inProt').value)||0;
+        let f = parseInt(document.getElementById('inFat').value)||0;
+        if(n && k) {
+            foods.push({n,k,c,p,f});
+            document.querySelectorAll('.add-box input').forEach(i=>i.value='');
+            render();
+            checkSmartAdvice(n, k, c, TGT_CAL);
+            showToast("Alimento aggiunto!"); // Feedback immediato
+            
+            const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
+            if (ptCheck > 0 && p >= 30 && (curP || 0) < ptCheck) {
+                showToast(`Pasto Ricco di Proteine! 🥩 Massimizza l'assorbimento con Pharmolain.`);
+            }
         }
     }
+    function rem(i) { foods.splice(i, 1); render(); }
+    function resetAll() { if(confirm("Vuoi iniziare una nuova giornata?\n\nATTENZIONE: Se hai completato la giornata e superato le 4:00 AM, il deficit calorico di oggi è già stato salvato automaticamente. Se cancelli ora, perderai solo i dati inseriti dopo l'ultimo reset giornaliero.")) { foods=[]; localStorage.setItem('foods_v3', '[]'); waterCount=0; renderWater(); render(); } }
+    
+    // --- WATER ---
+    function renderWater() {
+        const g = document.getElementById('waterGrid'); g.innerHTML='';
+        for(let i=0; i<8; i++) {
+            let d=document.createElement('div'); d.className=`water-glass ${i<waterCount?'filled':(i===waterCount?'next-up':'')}`;
+            d.onclick=()=>toggleWater(i); g.appendChild(d);
+        }
+        document.getElementById('waterCountDisplay').innerText = `${waterCount}/8`;
+        localStorage.setItem('water_count', waterCount);
+        
+        // Update Challenge Text
+        let ws = parseInt(localStorage.getItem('water_streak_days')) || 0;
+        let dayText = (waterCount === 8) ? "✅ Obiettivo di oggi raggiunto!" : `💧 Sfida Drenante: Giorno ${ws + 1} di 3`;
+        document.getElementById('waterStatus').innerText = dayText;
+
+        if(waterCount===8) {
+             if(localStorage.getItem('last_water_win_date') !== todayStr) {
+                 localStorage.setItem('water_streak_days', ws + 1);
+                 localStorage.setItem('last_water_win_date', todayStr);
+                 if(ws+1 >= 3 && !localStorage.getItem('water_reward_claimed')) document.getElementById('waterRewardModal').style.display='flex';
+             }
+        }
+    }
+    
+    function toggleWater(i) {
+        const currentTime = Date.now();
+        const lastDrink = parseInt(localStorage.getItem('water_last_time')) || 0;
+        const oneHour = 3600000; 
+
+        if (i === waterCount) {
+            // Check Timer (only if not first glass)
+            if (waterCount > 0 && (currentTime - lastDrink < oneHour)) {
+                let minLeft = Math.ceil((oneHour - (currentTime - lastDrink)) / 60000);
+                showToast(`⏳ Aspetta ancora ${minLeft} min per la corretta idratazione.`);
+                return;
+            }
+            waterCount++;
+            localStorage.setItem('water_last_time', currentTime);
+            showToast("Idratazione registrata! 💧");
+            renderWater();
+        } 
+        // REMOVED "else if" block to prevent removing glasses
+    }
+
+    // --- INFO POPUPS ---
+    function showPrecisionInfo() {
+        const platinumStreak = parseInt(localStorage.getItem('platinum_streak')) || 0;
+        const msg = `🏆 SISTEMA CARTE PRECISIONE PHARMO 🏆\n\nIl tuo obiettivo è usare tutte le calorie (TGT CAL) a disposizione, senza sforare!\n\n**CRITERI GIORNALIERI (Precisione Massima):**\n   ‣ ORO 🥇:  Rimanere entro 50 Kcal dal Target (massimo deficit).\n   ‣ ARGENTO 🥈: Rimanere tra 51 Kcal e 100 Kcal dal Target.\n   ‣ BRONZO 🥉: Rimanere tra 101 Kcal e 200 Kcal dal Target.\n   \n   (Lasciare >200 Kcal o Sforare = Serie interrotta.)\n\n**RICONOSCIMENTO PLATINO (Costanza):**\nLa Carta Platino è il traguardo massimo a lungo termine!\nSi sblocca mantenendo la **Carta ORO (Perfetto)** per 5 giorni consecutivi.\n\n   ‣ Stato attuale: ${platinumStreak} giorni consecutivi Oro.\n\nMantieni la serie Oro per sbloccare la **Serie Platino** al 5° giorno, l'unica sfida ad offrire un codice sconto monetario!`;
+        alert(msg);
+    }
+
+    function showStreakInfo() {
+        const streakCount = parseInt(localStorage.getItem('streak_days')) || 0; 
+        let alertMessage = "LA SFIDA DI PHARMO.IT\n\nUsa l'applicazione con costanza per sbloccare Premi Visivi Esclusivi!\n\nLivelli:\n- 7 Giorni: Badge Bronzo\n- 14 Giorni: Badge Argento\n- 30 Giorni: Badge Oro\n\nAttuale: " + streakCount + " giorni.\n\n⚠️ NOTA: Non ci sono codici sconto in questa serie, concentrati sul Platino per il premio monetario.\n\n💡 IMPORTANTE: Ricordati di aggiornare il tuo peso nel profilo ogni 7 giorni.";
+        alert(alertMessage);
+    }
+
+    function checkSmartAdvice(n, k, c, max) { if(c > max/2) showToast("Troppi Carboidrati? Gestiscili con Pharmofit."); }
 
     function checkTimeAdvice(currentProtein) {
         const hour = new Date().getHours();
         const currentPTMinG = parseFloat(localStorage.getItem('pt_min_g')) || 0;
 
         if (hour >= 6 && hour < 11) {
-            // Mattina: General advice
             showToast("Buongiorno! Attiva il metabolismo con Pharmofit.");
         } else if (hour >= 12 && hour < 15) {
-            // Pranzo: Pharmolain advice
             showToast("Pranzo proteico? Pharmolain aiuta la digestione.");
         } else if (hour >= 20 && hour <= 22) { 
-            // Sera (8 PM - 10 PM): Protein Check
             if (currentPTMinG > 0 && currentProtein < currentPTMinG) {
                 let diff = Math.round(currentPTMinG - currentProtein);
                 showToast(`⚠️ SOS Proteine! Mancano ${diff}g per proteggere la massa muscolare oggi. Recupera subito!`);
@@ -851,493 +644,24 @@ Mantieni la serie Oro per sbloccare la **Serie Platino** al 5° giorno, e ottene
         }
     }
 
-
-    // --- CORE LOGIC (CALCULATION & RENDER) ---
+    // --- INIT ---
+    if(!localStorage.getItem('terms_accepted_v1')) document.getElementById('disclaimerModal').style.display='flex';
+    document.getElementById('gender').value = state.g; document.getElementById('age').value = state.age;
+    document.getElementById('weight').value = state.w; document.getElementById('height').value = state.h;
+    document.getElementById('act').value = state.act; document.getElementById('goal').value = state.goal;
+    document.getElementById('targetWeightInput').value = state.targetW || ''; document.getElementById('targetDateInput').value = state.targetD || '';
+    document.getElementById('circ_abd').value = state.circ_abd || ''; document.getElementById('circ_coscia').value = state.circ_coscia || ''; document.getElementById('circ_braccio').value = state.circ_braccio || '';
     
-    // RESTORE INPUTS (HTML) 
-    document.getElementById('gender').value = state.g;
-    document.getElementById('age').value = state.age;
-    document.getElementById('weight').value = state.w;
-    document.getElementById('height').value = state.h;
-    document.getElementById('targetWeightInput').value = state.targetW || '';
-    document.getElementById('targetDateInput').value = state.targetD || '';
-    document.getElementById('act').value = state.act;
-    if(state.goal === 'lose') state.goal = 'lose_aggr'; 
-    document.getElementById('goal').value = state.goal;
+    document.getElementById('streakDisplay').innerText = `🔥 ${streakCount}gg`;
+    let ps = parseInt(localStorage.getItem('platinum_streak'))||0;
+    let pel = document.getElementById('platinumStreakDisplay');
+    pel.innerText = `${ps}/5 gg ORO`;
+    if(ps>=5) { pel.innerText = `💎 PLATINO (${ps}gg)`; pel.style.color="#FFD700"; }
 
-
-    let TGT_CAL = 0, TGT_C = 0, TGT_P = 0, TGT_F = 0, BMR = 0, TDEE = 0;
-    let PT_MIN_G = 0; // Dichiarazione della variabile soglia proteica
-
-
-    function calc() {
-        let oldWeight = state.w;
-        let newWeight = parseFloat(document.getElementById('weight').value);
-        
-        if (oldWeight && newWeight && oldWeight !== newWeight) {
-            if (newWeight < oldWeight) {
-                showToast("Peso in calo! Mantieni la pelle tonica con Pharmofiller.");
-            } else {
-                showToast("Peso stabile? Sbloccalo con Pharmofit.");
-            }
-        }
-
-        // Collect current input state, including new target fields
-        state = {
-            g: document.getElementById('gender').value,
-            age: parseFloat(document.getElementById('age').value),
-            w: newWeight,
-            h: parseFloat(document.getElementById('height').value),
-            act: parseFloat(document.getElementById('act').value),
-            goal: document.getElementById('goal').value,
-            targetW: parseFloat(document.getElementById('targetWeightInput').value) || 0,
-            targetD: document.getElementById('targetDateInput').value || ''
-        };
-        localStorage.setItem('profile_v3', JSON.stringify(state));
-
-        // 1. Core Calorie Math (Mifflin-St Jeor)
-        let s = (10 * state.w) + (6.25 * state.h) - (5 * state.age);
-        BMR = (state.g === 'm') ? s + 5 : s - 161;
-        TDEE = Math.round(BMR * state.act);
-
-         let adjustments = {
-            'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 
-            'detox': 0.95, 'beauty': 1.0, 'recomp': 0.95, // MODIFICA QUI: 0.95 (Deficit -5%)
-            'maintain': 1.0, 'gain': 1.10
-        };
-        TGT_CAL = Math.round(TDEE * adjustments[state.goal]);
-
-        let safetyText = "";
-        
-        // --- SAFETY CHECK (Blocco Rigido Data) ---
-        if (state.targetW > 0 && state.w > state.targetW) {
-            let weightGap = state.w - state.targetW;
-            let kcalGapTotal = weightGap * KCAL_PER_KG_FAT;
-            let minDaysNeeded = Math.ceil(kcalGapTotal / MAX_SAFE_DAILY_DEFICIT);
-            
-            // Calcola la data minima possibile (YYYY-MM-DD)
-            let earliestDate = new Date(Date.now() + minDaysNeeded * SECONDS_IN_DAY * 1000);
-            let yyyy = earliestDate.getFullYear();
-            let mm = String(earliestDate.getMonth() + 1).padStart(2, '0');
-            let dd = String(earliestDate.getDate()).padStart(2, '0');
-            let minDateString = `${yyyy}-${mm}-${dd}`;
-
-            // 1. Applica il blocco all'input HTML
-            document.getElementById('targetDateInput').setAttribute('min', minDateString);
-
-            // 2. Clear se la data precedentemente selezionata è ora troppo aggressiva
-            if (state.targetD) {
-                let userTargetDate = new Date(state.targetD);
-                if (userTargetDate.getTime() < earliestDate.getTime()) {
-                    showToast(`⛔ La data selezionata è troppo vicina per un taglio sano! Minimo: ${earliestDate.toLocaleDateString('it-IT')}.`);
-                    document.getElementById('targetDateInput').value = ''; 
-                    state.targetD = ''; // Rimuove la data dallo stato
-                    localStorage.setItem('profile_v3', JSON.stringify(state)); 
-                }
-            }
-        } else {
-            // Rimuove l'attributo min se non ci sono obiettivi sensati (es. peso target > peso attuale)
-            document.getElementById('targetDateInput').removeAttribute('min');
-        }
-
-        if (TGT_CAL < BMR) {
-            TGT_CAL = Math.round(BMR);
-            safetyText = "<br><span style='color:var(--orange); font-weight:600;'>⚠️ Target limitato al BMR per sicurezza.</span>";
-        }
-
-        // 2. Macro Logic & Shop Text Assignment
-        let p_ratio, c_ratio, f_ratio, goalText;
-        let sTitle, sDesc;
-        let requiresHighProtein = false; 
-
-        // Default: Mantenimento Standard 50/20/30
-        c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; 
-        sTitle = "Protocollo Definizione & Struttura";
-        sDesc = stackGain; 
-        goalText = "Mantenimento"; 
-
-        if(state.goal === 'lose_aggr' || state.goal === 'lose_athlete_15' || state.goal === 'lose_cons') {
-            sTitle = "Protocollo Total Body 3-Fasi"; sDesc = stackLoss;
-            if(state.goal === 'lose_aggr') { c_ratio = 0.40; p_ratio = 0.30; f_ratio = 0.30; goalText = "Perdita Peso Standard (-20%)"; requiresHighProtein = true; } 
-            else if (state.goal === 'lose_athlete_15') { c_ratio = 0.35; p_ratio = 0.35; f_ratio = 0.30; goalText = "Atleta / Cut Aggressivo (-15%)"; requiresHighProtein = true; } 
-            else { c_ratio = 0.40; p_ratio = 0.30; f_ratio = 0.30; goalText = "Atleta / Cut Conservativo (-10%)"; requiresHighProtein = true; }
-        
-        } else if (state.goal === 'detox') {
-            c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; 
-            goalText = "Detox & Sgonfiamento (-5%)"; sTitle = "Protocollo Pancia Piatta & Detox"; sDesc = stackDetox;
-
-        } else if (state.goal === 'beauty') {
-            c_ratio = 0.45; p_ratio = 0.25; f_ratio = 0.30; 
-            goalText = "Beauty & Anti-Age"; sTitle = "Protocollo Glow: Pelle & Microcircolo"; sDesc = stackBeauty;
-
-        } else if (state.goal === 'recomp') {
-            c_ratio = 0.35; p_ratio = 0.35; f_ratio = 0.30; 
-            goalText = "Ricomposizione Corporea"; sTitle = "Protocollo Body Recomp"; sDesc = stackRecomp;
-            requiresHighProtein = true; 
-        
-        } else if (state.goal === 'gain') {
-            c_ratio = 0.50; p_ratio = 0.20; f_ratio = 0.30; goalText = "Surplus Muscolare (+10%)";
-        }
-
-
-        // --- Calcolo e Salvataggio Soglia Proteica Minima (PT_MIN_G) ---
-        if (requiresHighProtein) {
-            PT_MIN_G = Math.round(state.w * PT_MIN_MULTIPLIER);
-        } else {
-            PT_MIN_G = 0; 
-        }
-        localStorage.setItem('pt_min_g', PT_MIN_G); 
-        // ----------------------------------------------------
-
-
-        document.getElementById('shopTitle').innerText = sTitle;
-        document.getElementById('shopDesc').innerHTML = sDesc;
-
-        TGT_C = Math.round((TGT_CAL * c_ratio) / 4);
-        TGT_P = Math.round((TGT_CAL * p_ratio) / 4);
-        TGT_F = Math.round((TGT_CAL * f_ratio) / 9);
-
-        document.getElementById('scientificData').innerHTML = 
-            `<b>Analisi Scientifica:</b><br>
-            Metabolismo Basale (BMR): <b>${Math.round(BMR)}</b> kcal<br>
-            Fabbisogno Totale (TDEE): <b>${TDEE}</b> kcal<br>
-            Piano: <b>${goalText}</b>${safetyText}`;
-        
-        document.getElementById('targetDisplay').innerText = TGT_CAL;
-
-        // 3. Prediction Logic (Traguardo)
-        updatePredictionStatus(TDEE, TGT_CAL);
-
-        let bmrPct = Math.min((BMR / TGT_CAL) * 100, 95);
-        document.getElementById('bmrMarker').style.left = bmrPct + "%";
-        document.getElementById('bmrTag').style.left = bmrPct + "%";
-        
-        render();
-
-        // Store target for tomorrow's cumulative calculation
-        localStorage.setItem('last_day_target', TGT_CAL); 
-    }
-
-    // --- Prediction Status Update (Future Goal Predictor) ---
-    function updatePredictionStatus(TDEE, TGT_CAL) {
-        const predBox = document.getElementById('predictionStatus');
-        
-        // Update Cumulative Display
-        const cumulativeKg = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1);
-        document.getElementById('cumulativeDisplay').innerText = `${cumulativeKg} Kg`;
-
-        // Check if user has defined a goal weight and date
-        if (!state.targetD || state.targetW <= 0) {
-            predBox.style.backgroundColor = '#eef7ff';
-            predBox.style.color = 'var(--shop-text)';
-            predBox.style.borderColor = '#cceeff';
-            predBox.innerHTML = 'Inserisci Peso/Data Obiettivo per l\'Analisi 💡';
-            return;
-        }
-
-        const weightGap = state.w - state.targetW;
-
-        if (weightGap <= 0) {
-            predBox.style.backgroundColor = '#c8f9c8';
-            predBox.style.color = 'var(--success)';
-            predBox.style.borderColor = 'var(--success)';
-            predBox.innerHTML = '✅ **Obiettivo Raggiunto!** Il tuo peso è già a target.';
-            return;
-        }
-        
-        const targetDateMs = new Date(state.targetD).getTime();
-        const currentDeficit = TDEE - TGT_CAL;
-        const daysLeft = Math.ceil((targetDateMs - realNow.getTime()) / (1000 * SECONDS_IN_DAY));
-
-        if (daysLeft <= 0) {
-            predBox.style.backgroundColor = '#ffc9c9';
-            predBox.style.color = 'var(--danger)';
-            predBox.style.borderColor = 'var(--danger)';
-            predBox.innerHTML = '📅 **Data Obiettivo Scaduta!** Rivedi la data o il peso target.';
-            return;
-        }
-
-        const kcalGapTotal = weightGap * KCAL_PER_KG_FAT;
-        const requiredDailyDeficit = Math.round(kcalGapTotal / daysLeft);
-        
-        if (currentDeficit <= 0) { // Maintenance, Recomp, or Gain
-             predBox.style.backgroundColor = '#fff0c9';
-             predBox.style.color = '#e07f00';
-             predBox.style.borderColor = '#ffcc00';
-             predBox.innerHTML = `⚠️ **Piano Non Efficace!** Devi creare un deficit di ${requiredDailyDeficit} Kcal/giorno. Passa a un piano *Cut*!`;
-             return;
-        }
-
-        if (currentDeficit >= requiredDailyDeficit) {
-            // SUCCESS: Deficit is adequate or exceeds requirement.
-            const estimatedDays = Math.ceil(kcalGapTotal / currentDeficit);
-            const estimatedDate = new Date(realNow.getTime() + estimatedDays * 1000 * SECONDS_IN_DAY).toLocaleDateString('it-IT');
-            
-            predBox.style.backgroundColor = '#c8f9c8';
-            predBox.style.color = 'var(--success)';
-            predBox.style.borderColor = 'var(--success)';
-            predBox.innerHTML = `✅ **Piano Efficace!** Arriverai a ${state.targetW}kg entro la data fissata.`;
-
-        } else {
-            // FAIL: Deficit is too low.
-            predBox.style.backgroundColor = '#ffc9c9';
-            predBox.style.color = 'var(--danger)';
-            predBox.style.borderColor = 'var(--danger)';
-            predBox.innerHTML = `⛔ **Piano Non Allineato!** Per raggiungere ${state.targetW}kg in tempo, dovresti tagliare ${requiredDailyDeficit} Kcal/giorno (tu ne tagli ${currentDeficit}). Consigliamo: **Scegli un piano Cut** oppure **posticipa la Data Obiettivo**.`;
-        }
-    }
-
-
-    function render() {
-    const list = document.getElementById('list');
-    list.innerHTML = '';
-    let curCal=0, curC=0, curP=0, curF=0;
-    const currentPTMinG = parseFloat(localStorage.getItem('pt_min_g')) || 0; // Carica la soglia minima
-
-    foods.slice().reverse().forEach((f, idx) => {
-        curCal += f.k; curC += f.c; curP += f.p; curF += f.f;
-        const li = document.createElement('li');
-        li.className = 'food-item';
-        li.innerHTML = `
-            <div class="food-info">
-                <div class="food-name">${f.n}</div>
-                <div class="food-details">C:${f.c} P:${f.p} G:${f.f}</div>
-            </div>
-            <div class="food-actions">
-                <span class="food-cal">${f.k}</span>
-                <button class="btn-del" onclick="rem(${foods.length - 1 - idx})">elimina</button>
-            </div>`;
-        list.appendChild(li);
-    });
-
-        // Store current consumption for cumulative update tomorrow
-        localStorage.setItem('last_day_total_consumed', curCal);
-        localStorage.setItem('last_day_cur_p', curP); // NEW: Save current protein intake
-
-        // Update Cumulative Display
-        const cumulativeKg = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1);
-        document.getElementById('cumulativeDisplay').innerText = `${cumulativeKg} Kg`;
-
-
-        // Empty State Tips
-        if (foods.length === 0) {
-            const tips = [
-                {t: "Bromelina (Pharmolain)", d: "Lo sapevi? 500mg di Bromelina 2500 GDU equivalgono all'attività enzimatica di 2 ananas interi. Potente contro la cellulite."},
-                {t: "Caffè Verde (Pharmofit)", d: "Scienza: L'Acido Clorogenico riduce l'assorbimento degli zuccheri nell'intestino, abbassando il carico glicemico del pasto."},
-                {t: "Collagene (Pharmofiller)", d: "Dopo i 25 anni, la produzione di collagene cala dell'1.5% l'anno. Integrarlo è l'unico modo per mantenere la pelle soda."},
-                {t: "Betulla (Pharmodren)", d: "La Betulla non elimina solo liquidi, ma aiuta a smaltire le tossine accumulate nei tessuti (Detox)."},
-                {t: "Cromo Picolinato (Pharmofit)", d: "Voglia di dolce dopo i pasti? Spesso è dovuta a sbalzi glicemici. Il Cromo Picolinato aiuta a stabilizzarli."},
-                {t: "Acido Ialuronico (Pharmofiller)", d: "L'Acido Ialuronico trattiene fino a 1000 volte il suo peso in acqua, mantenendo la pelle idratata e 'piena'."},
-                {t: "Arancio Amaro (Pharmofit)", d: "La Sinefrina (Arancio Amaro) stimola la termogenesi selettiva, aiutando a utilizzare i grassi a scopo energetico."},
-                {t: "Sonno e Peso", d: "Dormire meno di 7 ore aumenta il cortisolo, l'ormone che ti fa accumulare grasso sulla pancia. Il riposo è parte della dieta."},
-                {t: "Termogenesi Digestiva", d: "Digerire le proteine costa al corpo il 30% delle calorie ingerite. Ecco perché una dieta proteica accelera il metabolismo."},
-                {t: "Vite Rossa (Pharmodren)", d: "Gambe pesanti a fine giornata? La Vite Rossa migliora il microcircolo e riduce il gonfiore alle caviglie."},
-                {t: "Acqua e Ritenzione", d: "Paradosso: se bevi poco, il corpo trattiene l'acqua per 'sopravvivenza'. Bevi almeno 2L per sbloccare la ritenzione."},
-                {t: "Fibre e Sazietà", d: "Le fibre solubili creano un gel nello stomaco che ti fa sentire sazio più a lungo. Abbonda con le verdure!"}
-            ];
-            const randomTip = tips[Math.floor(Math.random() * tips.length)];
-            
-            list.innerHTML = `
-                <div class="did-you-know">
-                    <span class="dyk-icon">💡</span>
-                    <div class="dyk-title">${randomTip.t}</div>
-                    <div class="dyk-text">${randomTip.d}</div>
-                </div>`;
-        }
-
-        let diff = TGT_CAL - curCal;
-        document.getElementById('remCal').innerText = diff;
-        document.getElementById('remCal').style.color = diff < 0 ? 'var(--danger)' : 'var(--text-main)';
-
-        
-        // --- INIZIO LOGICA CARTE PRECISIONE (ORO/ARGENTO/BRONZO) ---
-        const diffRimanente = diff; // Differenza positiva = ancora calorie; Negativa = sforato
-        const badgeElement = document.getElementById('bullseyeBadge');
-        
-        // Se per qualche motivo l'elemento non è stato caricato, usciamo puliti.
-        if (!badgeElement) {
-             console.error("BullseyeBadge element not found.");
-        } else {
-            let cardClass = 'card-default';
-            let cardText = 'Inizia a loggare';
-            let toastMessage = '';
-
-            if (diffRimanente < 0) {
-                // FUORI TARGET: Se la differenza è negativa, hai sforato.
-                cardClass = 'card-default'; 
-                cardText = `❌ SFORATO di ${Math.abs(diffRimanente)} Kcal`;
-                toastMessage = `ATTENZIONE! Hai sforato di ${Math.abs(diffRimanente)} Kcal. Riprova domani.`;
-            } else if (diffRimanente >= 0 && diffRimanente <= 50) {
-                // LIVELLO ORO: La precisione massima in un giorno
-                cardClass = 'card-gold';
-                cardText = '🥇 ORO (Perfetto)';
-                toastMessage = "PRECISIONE ORO! Target centrato per massimizzare il deficit.";
-            } else if (diffRimanente > 50 && diffRimanente <= 100) {
-                // LIVELLO ARGENTO: Ottima precisione
-                cardClass = 'card-silver';
-                cardText = '🥈 ARGENTO (Ottima)';
-            } else if (diffRimanente > 100 && diffRimanente <= 200) {
-                // LIVELLO BRONZO: Accettabile, ma margini
-                cardClass = 'card-bronze';
-                cardText = '🥉 BRONZO (Buona)';
-            } else if (diffRimanente > 200 && curCal > 0) {
-                // PIANO INCOMPLETO: Rischi di non mangiare abbastanza
-                cardClass = 'card-default';
-                cardText = '⚠️ INCOMPLETO';
-                toastMessage = `Mancano ancora ${diffRimanente} Kcal. Mangia per massimizzare il deficit!`;
-            }
-            
-            // Assegna la classe e il testo al badge visivo
-            badgeElement.className = `precision-card ${cardClass}`;
-            badgeElement.innerText = cardText;
-        
-
-            // Mostra il toast di celebrazione (solo per i livelli più alti e correttivi)
-            if (toastMessage) {
-                showToast(toastMessage);
-            }
-        }
-        // --- FINE LOGICA CARTE PRECISIONE ---
-
-        let pct = (curCal / TGT_CAL) * 100;
-        let bar = document.getElementById('calBar');
-        let msg = document.getElementById('statusText');
-        bar.style.width = Math.min(pct, 100) + "%";
-        
-        let barColor = "var(--danger)";
-        let msgText = "⛔ Limite superato";
-        let msgColor = "var(--danger)";
-
-        // Logic for specialized plans (Athlete/Recomp)
-        if (state.goal === 'lose_athlete_15' || state.goal === 'lose_cons' || state.goal === 'recomp') {
-            let safeFloor = Math.round(TDEE * 0.80);
-            if (curCal < BMR) {
-                barColor = "var(--warn)"; msgText = "⚠️ Energia insufficiente (Sotto Basale)"; msgColor = "#d4a017";
-            } else if (curCal >= BMR && curCal < safeFloor) {
-                barColor = "var(--orange)"; msgText = "🟠 Deficit ancora eccessivo (>20%)"; msgColor = "var(--orange)";
-            } else if (curCal >= safeFloor && curCal <= TGT_CAL) {
-                barColor = "var(--success)"; msgText = "✅ Zona Target Ottimale (Atleta)"; msgColor = "var(--success)";
-            }
-        } else {
-            // Logic for standard plans
-            if (curCal < BMR) {
-                barColor = "var(--warn)"; msgText = "⚠️ Energia insufficiente (Sotto Basale)"; msgColor = "#d4a017";
-            } else if (curCal >= BMR && curCal <= TGT_CAL) {
-                barColor = "var(--success)"; msgText = "✅ Ottimo lavoro! Sei nel range ideale."; msgColor = "var(--success)";
-            }
-        }
-        bar.style.background = barColor;
-        msg.innerText = msgText;
-        msg.style.color = msgColor;
-
-        setBar('carb', curC, TGT_C, 'g');
-        setBar('prot', curP, TGT_P, 'g');
-        setBar('fat', curF, TGT_F, 'g');
-
-           // --- AVVISO PROTEICO FISSO NEI MACRO (ARANCIONE) ---
-        
-        // OBIETTIVI CHE RICHIEDONO L'AVVISO PROTEICO ALTO (High Protein Goals)
-        // Solo i piani Atleta/Recomp usano la quota minima 1.8g/kg
-        const highProteinGoals = ['lose_athlete_15', 'lose_cons', 'recomp']; 
-        
-        // Legge l'obiettivo corrente direttamente dall'input HTML
-        const currentGoal = document.getElementById('goal').value; 
-        
-        // Assicurati di leggere la soglia minima impostata da calc() (che è 0 per i non-atleti)
-        const currentPTMinGCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0; 
-        let protWarningHTML = '';
-     
-        // Condizione definitiva: Avviso appare SOLO se il goal è High Protein AND (la soglia è > 0 AND l'utente ha mangiato qualcosa)
-        if (highProteinGoals.includes(currentGoal) && currentPTMinGCheck > 0 && curCal > 0) {
-            
-            // Se non hai ancora raggiunto la soglia minima proteica
-            if (curP < currentPTMinGCheck) {
-                protWarningHTML = `<div style="color:var(--orange); font-size:0.8rem; font-weight:700; background:#fff5e6; padding:8px; border-radius:8px; margin-top:10px; border:1px solid var(--orange); text-align: center;">
-                            ⚠️ **Attenzione Atleta!** Quota minima proteica (${currentPTMinGCheck}g) non raggiunta. Proteggi i muscoli!
-                           </div>`;
-            } else {
-                // Se la soglia è stata raggiunta
-                protWarningHTML = `<div style="color:var(--success); font-size:0.8rem; font-weight:600; margin-top:10px; text-align: center;">
-                            ✅ Ottimo! Muscoli Protetti (${curP}g su ${currentPTMinGCheck}g minimi).
-                           </div>`;
-            }
-        }
-        
-        const macroContainer = document.querySelector('.macros-box');
-        let protAlertElement = document.getElementById('protAlert');
-        if (!protAlertElement) {
-            protAlertElement = document.createElement('div');
-            protAlertElement.id = 'protAlert';
-            const macroGrid = macroContainer ? macroContainer.querySelector('.macro-grid') : null;
-            if (macroGrid) macroGrid.insertAdjacentElement('afterend', protAlertElement);
-        }
-        protAlertElement.innerHTML = protWarningHTML;
-        // ---------------------------------------------
-
-
-        localStorage.setItem('foods_v3', JSON.stringify(foods));
-        
-        return { curCal, curC, curP }; // Return curP for Pharmolain check
-    }
-
-    function setBar(type, cur, max, unit) {
-        let p = (cur / max) * 100;
-        document.getElementById(type+'Bar').style.width = Math.min(p, 100) + "%";
-        document.getElementById(type+'Txt').innerText = `${cur} / ${max}${unit}`;
-    }
-
-    function add() {
-        let n = document.getElementById('inName').value;
-        let k = parseInt(document.getElementById('inCal').value);
-        let c = parseInt(document.getElementById('inCarb').value)||0;
-        let p = parseInt(document.getElementById('inProt').value)||0; // NEW: Get added proteins
-        
-        if(n && k) {
-            foods.push({
-                n, k,
-                c: c,
-                p: p,
-                f: parseInt(document.getElementById('inFat').value)||0
-            });
-            document.querySelectorAll('.add-box input').forEach(i => i.value = '');
-            
-            const totals = render();
-            
-            checkSmartAdvice(n, k, totals.curC, TGT_CAL);
-            
-            // --- CHECK PHARMOLAIN (After Meal) ---
-            const currentPTMinG = parseFloat(localStorage.getItem('pt_min_g')) || 0;
-            if (currentPTMinG > 0 && p >= 30 && totals.curP < currentPTMinG) {
-                // Se l'utente ha aggiunto un pasto proteico (>30g) e non ha ancora raggiunto la quota minima
-                showToast(`Pasto Ricco di Proteine! 🥩 Massimizza l'assorbimento con Pharmolain.`);
-            }
-        }
-    }
-
-    function rem(i) {
-        foods.splice(i, 1);
-        render();
-    }
-
-    function resetAll() {
-        if(confirm("Vuoi iniziare una nuova giornata?\n\nATTENZIONE: Se hai completato la giornata e superato le 4:00 AM, il deficit calorico di oggi è già stato salvato automaticamente. Se cancelli ora, perderai solo i dati inseriti dopo l'ultimo reset giornaliero.")) {
-            foods = []; 
-            localStorage.setItem('foods_v3', JSON.stringify([])); 
-            localStorage.setItem('water_count', 0); 
-            localStorage.setItem('water_last_time', 0); 
-            waterCount = 0;
-            renderWater();
-            render();
-            showToast("Diario e acqua azzerati! Inizia una nuova tracciatura.");
-        }
-    }
-
-    // Init Calls
-    // The order is important: calc loads profile, then calls render which updates the food list/macros.
-    calc(); 
+    calc();
     renderWater();
-    const finalTotals = render(); // Ensure render is called to get final values and update the UI
-    checkTimeAdvice(finalTotals.curP); // Pass final current protein count for evening check
+    const finalTotals = render(); 
+    checkTimeAdvice(finalTotals.curP); 
 </script>
 </body>
 </html>
