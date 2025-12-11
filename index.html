@@ -1234,22 +1234,35 @@ Mantieni la serie Oro per sbloccare la **Serie Platino** al 5° giorno, e ottene
         setBar('prot', curP, TGT_P, 'g');
         setBar('fat', curF, TGT_F, 'g');
 
-        // --- AVVISO PROTEICO FISSO NEI MACRO (ARANCIONE) ---
-        const currentPTMinGCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
+           // --- AVVISO PROTEICO FISSO NEI MACRO (ARANCIONE) ---
+        
+        // OBIETTIVI CHE RICHIEDONO L'AVVISO PROTEICO ALTO (High Protein Goals)
+        // Solo i piani Atleta/Recomp usano la quota minima 1.8g/kg
+        const highProteinGoals = ['lose_athlete_15', 'lose_cons', 'recomp']; 
+        
+        // Legge l'obiettivo corrente direttamente dall'input HTML
+        const currentGoal = document.getElementById('goal').value; 
+        
+        // Assicurati di leggere la soglia minima impostata da calc() (che è 0 per i non-atleti)
+        const currentPTMinGCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0; 
         let protWarningHTML = '';
      
-        if (currentPTMinGCheck > 0 && curCal > 0) {
+        // Condizione definitiva: Avviso appare SOLO se il goal è High Protein AND (la soglia è > 0 AND l'utente ha mangiato qualcosa)
+        if (highProteinGoals.includes(currentGoal) && currentPTMinGCheck > 0 && curCal > 0) {
+            
+            // Se non hai ancora raggiunto la soglia minima proteica
             if (curP < currentPTMinGCheck) {
                 protWarningHTML = `<div style="color:var(--orange); font-size:0.8rem; font-weight:700; background:#fff5e6; padding:8px; border-radius:8px; margin-top:10px; border:1px solid var(--orange); text-align: center;">
                             ⚠️ **Attenzione Atleta!** Quota minima proteica (${currentPTMinGCheck}g) non raggiunta. Proteggi i muscoli!
                            </div>`;
             } else {
+                // Se la soglia è stata raggiunta
                 protWarningHTML = `<div style="color:var(--success); font-size:0.8rem; font-weight:600; margin-top:10px; text-align: center;">
                             ✅ Ottimo! Muscoli Protetti (${curP}g su ${currentPTMinGCheck}g minimi).
                            </div>`;
             }
         }
-
+        
         const macroContainer = document.querySelector('.macros-box');
         let protAlertElement = document.getElementById('protAlert');
         if (!protAlertElement) {
@@ -1260,6 +1273,7 @@ Mantieni la serie Oro per sbloccare la **Serie Platino** al 5° giorno, e ottene
         }
         protAlertElement.innerHTML = protWarningHTML;
         // ---------------------------------------------
+
 
         localStorage.setItem('foods_v3', JSON.stringify(foods));
         
