@@ -246,8 +246,8 @@
         <span style="font-size: 0.9rem; color: var(--text-sec); font-weight: 600;">PRECISIONE GIORNALIERA:</span>
         <div id="bullseyeBadge" class="precision-card card-default" onclick="showPrecisionInfo()">Inizia a loggare</div>
     </div>
-    <div style="text-align: center; margin-top: 15px; padding: 5px 0; margin-bottom: 30px;"> 
-        <span style="font-size: 0.9rem; color: #007aff; font-weight: 700;">SERIE PLATINO:</span>
+    
+    <div style="text-align: center; margin-top: 5px; padding: 5px 0; margin-bottom: 10px;"> <span style="font-size: 0.9rem; color: #007aff; font-weight: 700;">SERIE PLATINO:</span>
         <span id="platinumStreakDisplay" style="font-size: 1.1rem; color: var(--success); font-weight: 800; margin-left: 5px;">0 giorni</span>
     </div>
 
@@ -296,12 +296,85 @@
     const MAX_SAFE_DAILY_DEFICIT = 1000; 
     const PT_MIN_MULTIPLIER = 1.8;
 
-    // --- TESTI PROTOCOLLI ---
-    const stackLoss = `Consiglio: <b>Pharmofit</b>, <b>Pharmodren</b> e <b>Pharmofiller</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#ff3b30;"><b>1. PHARMOFIT:</b> Sblocca il metabolismo stagnante. Caffè Verde e Arancio Amaro innescano la termogenesi.<br></div><div class="shop-highlight" style="border-left-color:#34c759;"><b>2. PHARMODREN:</b> Azione d'urto sui liquidi. Betulla e Ananas prosciugano la ritenzione che maschera i progressi.<br></div><div class="shop-highlight" style="border-left-color:#007aff;"><b>3. PHARMOFILLER:</b> L'architetto della pelle (Collagene + Ialuronico). Ricostruisce l'impalcatura cutanea mentre ti svuoti.</div></details>`;
-    const stackDetox = `Consiglio: <b>Pharmodren</b> e <b>Pharmolain</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#34c759;"><b>1. PHARMODREN:</b> Elimina i liquidi in eccesso e le tossine accumulate.<br></div><div class="shop-highlight" style="border-left-color:#ffcc00;"><b>2. PHARMOLAIN:</b> Potente antinfiammatorio e digestivo (Bromelina).</div></details>`;
-    const stackBeauty = `Consiglio: <b>Pharmofiller</b> e <b>Pharmodren</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#007aff;"><b>1. PHARMOFILLER:</b> Collagene Marino + Acido Ialuronico.<br></div><div class="shop-highlight" style="border-left-color:#34c759;"><b>2. PHARMODREN:</b> La Vite Rossa migliora il microcircolo.</div></details>`;
-    const stackRecomp = `Consiglio: <b>Pharmofit</b> e <b>Pharmolain</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#ff3b30;"><b>1. PHARMOFIT:</b> Gestione dei carboidrati e spinta metabolica.<br></div><div class="shop-highlight" style="border-left-color:#ffcc00;"><b>2. PHARMOLAIN:</b> La Bromelina massimizza l'assorbimento delle proteine.</div></details>`;
-    const stackGain = `Consiglio: <b>Pharmofit</b>, <b>Pharmodren</b> e <b>Pharmofiller</b>.<details class="shop-details"><summary>Svela i dettagli del trattamento</summary><div class="shop-highlight" style="border-left-color:#ff3b30;"><b>1. PHARMOFIT:</b> Il Cromo dirige i carboidrati nei muscoli.<br></div><div class="shop-highlight" style="border-left-color:#34c759;"><b>2. PHARMODREN:</b> Definizione HD. Espelle l'acqua extracellulare.<br></div><div class="shop-highlight" style="border-left-color:#007aff;"><b>3. PHARMOFILLER:</b> Scudo anti-smagliature.</div></details>`;
+    // --- TESTI PROTOCOLLI DETTAGLIATI & PERSUASIVI ---
+    const stackLoss = `
+        Consiglio: <b>Pharmofit</b>, <b>Pharmodren</b> e <b>Pharmofiller</b>.
+        <details class="shop-details">
+            <summary>Svela la strategia completa</summary>
+            <div class="shop-highlight" style="border-left-color:#ff3b30;">
+                <b>1. PHARMOFIT (Metabolismo):</b><br>
+                Non basta mangiare meno. Pharmofit costringe il tuo corpo a usare i grassi come fonte primaria di energia grazie alla termogenesi indotta da Caffè Verde e Arancio Amaro. Sblocca gli stalli metabolici.
+            </div>
+            <div class="shop-highlight" style="border-left-color:#34c759;">
+                <b>2. PHARMODREN (Drenante Urtante):</b><br>
+                Spesso quello che credi sia grasso è acqua extracellulare. Betulla e Ananas prosciugano la ritenzione idrica, sgonfiando immediatamente girovita e gambe pesanti.
+            </div>
+            <div class="shop-highlight" style="border-left-color:#007aff;">
+                <b>3. PHARMOFILLER (Struttura):</b><br>
+                Evita l'effetto "pelle svuotata". Mentre perdi volume, il Collagene e l'Acido Ialuronico mantengono la pelle elastica, soda e compatta, prevenendo i cedimenti.
+            </div>
+        </details>`;
+
+    const stackDetox = `
+        Consiglio: <b>Pharmodren</b> e <b>Pharmolain</b>.
+        <details class="shop-details">
+            <summary>Svela la strategia completa</summary>
+            <div class="shop-highlight" style="border-left-color:#34c759;">
+                <b>1. PHARMODREN (Wash-out Tossine):</b><br>
+                Un vero lavaggio interno. Elimina le tossine accumulate nei tessuti che infiammano il corpo e bloccano il dimagrimento. Risultato: gambe leggere e microcircolo riattivato.
+            </div>
+            <div class="shop-highlight" style="border-left-color:#ffcc00;">
+                <b>2. PHARMOLAIN (Pancia Piatta):</b><br>
+                La Bromelina ad alto dosaggio (2500 GDU) è un potente antinfiammatorio naturale. Polverizza il gonfiore addominale post-pasto e migliora la digestione istantaneamente.
+            </div>
+        </details>`;
+
+    const stackBeauty = `
+        Consiglio: <b>Pharmofiller</b> e <b>Pharmodren</b>.
+        <details class="shop-details">
+            <summary>Svela la strategia completa</summary>
+            <div class="shop-highlight" style="border-left-color:#007aff;">
+                <b>1. PHARMOFILLER (Anti-Age):</b><br>
+                Dopo i 25 anni perdi l'1.5% di collagene l'anno. Pharmofiller lo reintegra dall'interno, rimpolpando le rughe sottili e garantendo un'idratazione profonda che nessuna crema può raggiungere.
+            </div>
+            <div class="shop-highlight" style="border-left-color:#34c759;">
+                <b>2. PHARMODREN (Glow & Ossigeno):</b><br>
+                Una pelle bella deve respirare. La Vite Rossa stimola il microcircolo sottocutaneo, portando ossigeno e nutrienti in superficie per un colorito sano, roseo e luminoso.
+            </div>
+        </details>`;
+
+    const stackRecomp = `
+        Consiglio: <b>Pharmofit</b> e <b>Pharmolain</b>.
+        <details class="shop-details">
+            <summary>Svela la strategia completa</summary>
+            <div class="shop-highlight" style="border-left-color:#ff3b30;">
+                <b>1. PHARMOFIT (Gestione Carboidrati):</b><br>
+                Il Cromo Picolinato indirizza i carboidrati che mangi verso il muscolo (glicogeno) invece che nel tessuto adiposo. Energia esplosiva per l'allenamento e zero accumuli.
+            </div>
+            <div class="shop-highlight" style="border-left-color:#ffcc00;">
+                <b>2. PHARMOLAIN (Assimilazione):</b><br>
+                Mangiare proteine non basta, devi assorbirle. La Bromelina massimizza la digestione proteica, garantendo che ogni grammo vada a costruire e riparare le fibre muscolari.
+            </div>
+        </details>`;
+
+    const stackGain = `
+         Consiglio: <b>Pharmofit</b>, <b>Pharmodren</b> e <b>Pharmofiller</b>.
+        <details class="shop-details">
+            <summary>Svela la strategia completa</summary>
+            <div class="shop-highlight" style="border-left-color:#ff3b30;">
+                <b>1. PHARMOFIT (Clean Bulk):</b><br>
+                Ottimizza la sensibilità insulinica. Ti permette di stare in surplus calorico minimizzando l'accumulo di grasso sporco. Crescita pulita e controllata.
+            </div>
+            <div class="shop-highlight" style="border-left-color:#34c759;">
+                <b>2. PHARMODREN (Definizione HD):</b><br>
+                L'acqua appanna i muscoli. Pharmodren elimina i liquidi sottocutanei in eccesso, facendo emergere vascolarizzazione e striature muscolari.
+            </div>
+            <div class="shop-highlight" style="border-left-color:#007aff;">
+                <b>3. PHARMOFILLER (Scudo Smagliature):</b><br>
+                La crescita muscolare rapida stressa la pelle. L'integrazione di collagene rende il tessuto connettivo elastico, prevenendo la formazione di smagliature su bicipiti e petto.
+            </div>
+        </details>`;
+
 
     // --- STATO E VARIABILI GLOBALI ---
     let foods = JSON.parse(localStorage.getItem('foods_v3')) || [];
@@ -556,7 +629,7 @@
             document.querySelectorAll('.add-box input').forEach(i=>i.value='');
             render();
             checkSmartAdvice(n, k, c, TGT_CAL);
-            showToast("Alimento aggiunto!"); // Feedback immediato
+            showToast("Alimento aggiunto!"); 
             
             const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
             if (ptCheck > 0 && p >= 30 && (curP || 0) < ptCheck) {
