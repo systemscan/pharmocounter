@@ -501,6 +501,21 @@
         let adj = { 'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 'detox': 0.95, 'beauty': 1.0, 'recomp': 0.95, 'maintain': 1.0, 'gain': 1.10 };
         TGT_CAL = Math.round(TDEE * adj[state.goal]);
         if (TGT_CAL < BMR) TGT_CAL = Math.round(BMR);
+        
+                // --- BLOCCO DATA DI SICUREZZA (RIPRISTINATO) ---
+        if (state.targetW > 0 && state.w > state.targetW) {
+            let weightGap = state.w - state.targetW;
+            let kcalGapTotal = weightGap * KCAL_PER_KG_FAT;
+            let minDaysNeeded = Math.ceil(kcalGapTotal / MAX_SAFE_DAILY_DEFICIT);
+            
+            let earliestDate = new Date(Date.now() + minDaysNeeded * SECONDS_IN_DAY * 1000);
+            let minDateString = earliestDate.toISOString().split('T')[0];
+            
+            document.getElementById('targetDateInput').setAttribute('min', minDateString);
+        } else {
+            document.getElementById('targetDateInput').removeAttribute('min');
+        }
+        // -----------------------------------------------
 
         // Text & Macros
         let p_r, c_r, f_r, gTxt, sTit, sDes;
@@ -625,19 +640,48 @@
         document.getElementById('circAnalysis').innerText = msg;
     }
 
-    function updatePredictionStatus() {
+        function updatePredictionStatus() {
         const box = document.getElementById('predictionStatus');
-        if (!state.targetD || state.targetW <= 0) { box.innerHTML = "Inserisci Peso/Data Obiettivo per l'Analisi 💡"; box.style.background="#eef7ff"; return; }
+        
+        // Se mancano dati
+        if (!state.targetD || state.targetW <= 0) { 
+            box.innerHTML = "Inserisci Peso/Data Obiettivo per l'Analisi 💡"; 
+            box.style.background="#eef7ff"; 
+            box.style.color="#003a80";
+            box.style.borderColor="#dbeafe";
+            return; 
+        }
         
         const daysLeft = Math.ceil((new Date(state.targetD) - new Date()) / (1000 * 86400));
-        if (daysLeft <= 0) { box.innerHTML = "📅 Data scaduta!"; box.style.background="#ffc9c9"; return; }
+        
+        // Se la data è passata o oggi
+        if (daysLeft <= 0) { 
+            box.innerHTML = "📅 Data scaduta! Aggiorna il calendario."; 
+            box.style.background="#ffc9c9"; 
+            box.style.color="#b30000";
+            box.style.borderColor="#ff3b30";
+            return; 
+        }
         
         const needDeficit = ((state.w - state.targetW) * KCAL_PER_KG_FAT) / daysLeft;
         const currDeficit = TDEE - TGT_CAL;
         
-        if (currDeficit >= needDeficit) { box.innerHTML = "✅ Piano Efficace! Raggiungerai l'obiettivo."; box.style.background="#c8f9c8"; }
-        else { box.innerHTML = "⛔ Piano lento. Scegli un taglio più aggressivo."; box.style.background="#ffc9c9"; }
+        // CASO 1: Il piano va bene
+        if (currDeficit >= needDeficit) { 
+            box.innerHTML = "✅ **Piano Efficace!** Raggiungerai l'obiettivo entro la data."; 
+            box.style.background="#c8f9c8"; 
+            box.style.color="#006400";
+            box.style.borderColor="#34c759";
+        }
+        // CASO 2: Il piano è troppo lento
+        else { 
+            box.innerHTML = "⚠️ **Sprint necessario!** Per questa data serve un deficit maggiore. Prova a cambiare piano obiettivo o posticipa la data."; 
+            box.style.background="#fff5e6"; // Sfondo Arancione chiaro
+            box.style.color="#b35900";      // Testo Arancione scuro
+            box.style.borderColor="#ff9500";
+        }
     }
+
 
     // --- ACTIONS ---
     function add() {
@@ -760,6 +804,3 @@
 </script>
 </body>
 </html>
-
-
-
