@@ -403,6 +403,8 @@
     let waterCount = parseInt(localStorage.getItem('water_count')) || 0;
     let cumulativeDeficit = parseFloat(localStorage.getItem('cumulative_deficit')) || 0;
     let streakCount = parseInt(localStorage.getItem('streak_days')) || 1;
+    let appReady = false; // Variabile per silenziare i toast all'avvio
+
     
     // Recupero Profilo
     let savedProfile = localStorage.getItem('profile_v3');
@@ -625,19 +627,19 @@
     }
 
     // --- FUNZIONI LOGICHE EXTRA ---
-    function checkCircumference() {
-        // 1. Recupera i vecchi dati (Memoria di ieri/settimana scorsa)
+            function checkCircumference() {
+        // 1. Recupera dati storici
         const oldAbd = parseFloat(localStorage.getItem('last_week_abd')) || 0;
         const oldCoscia = parseFloat(localStorage.getItem('last_week_coscia')) || 0;
         const oldBraccio = parseFloat(localStorage.getItem('last_week_braccio')) || 0;
         
-        // 2. Recupera i nuovi dati (Input attuali)
+        // 2. Recupera dati attuali
         const nowAbd = state.circ_abd;
         const nowCoscia = state.circ_coscia;
         const nowBraccio = state.circ_braccio;
 
-        let parts = []; // Lista per il testo nel box
-        let delay = 0;  // Timer per non sovrapporre i messaggi
+        let parts = []; 
+        let delay = 0; // Timer per non sovrapporre i messaggi
 
         // -------------------------------------------------------
         // A. CONTROLLO ADDOME
@@ -646,14 +648,16 @@
             let diffAddome = nowAbd - oldAbd; 
             parts.push(`Addome: ${diffAddome > 0 ? '+' : ''}${diffAddome.toFixed(1)}`);
             
-            if (diffAddome <= -0.1) {
-                // DIMINUISCE: Pharmofiller (Elasticità)
-                setTimeout(() => showToast("✅ Addome ridotto! Usa Pharmofiller per elasticità e tonicità."), delay);
-                delay += 4000; 
-            } else if (diffAddome >= 0.1) {
-                // AUMENTA: Pharmolain (Gonfiore)
-                setTimeout(() => showToast("⚠️ Addome aumentato! Gonfiore? Usa Pharmolain."), delay);
-                delay += 4000;
+            if (appReady) {
+                if (diffAddome <= -0.1) {
+                    // DIMINUISCE: Pharmofiller (Elasticità)
+                    setTimeout(() => showToast("✅ Addome ridotto! Usa Pharmofiller per elasticità e tonicità."), delay);
+                    delay += 4500; 
+                } else if (diffAddome >= 0.1) {
+                    // AUMENTA: Pharmolain (Gonfiore)
+                    setTimeout(() => showToast("⚠️ Addome aumentato! Gonfiore? Usa Pharmolain."), delay);
+                    delay += 4500;
+                }
             }
         }
 
@@ -664,14 +668,16 @@
             let diffCoscia = nowCoscia - oldCoscia;
             parts.push(`Coscia: ${diffCoscia > 0 ? '+' : ''}${diffCoscia.toFixed(1)}`);
             
-            if (diffCoscia <= -0.1) {
-                // DIMINUISCE: Pharmofiller (Elasticità)
-                setTimeout(() => showToast("✅ Coscia più snella! Usa Pharmofiller per elasticità e tonicità."), delay);
-                delay += 4000;
-            } else if (diffCoscia >= 0.1) {
-                // AUMENTA: PharmoVen (Circolazione)
-                setTimeout(() => showToast("🚨 Coscia aumentata! Problemi di circolazione? Usa PharmoVen."), delay);
-                delay += 4000;
+            if (appReady) {
+                if (diffCoscia <= -0.1) {
+                    // DIMINUISCE: Pharmofiller (Elasticità)
+                    setTimeout(() => showToast("✅ Coscia più snella! Usa Pharmofiller per elasticità e tonicità."), delay);
+                    delay += 4500;
+                } else if (diffCoscia >= 0.1) {
+                    // AUMENTA: PharmoVen (Circolazione)
+                    setTimeout(() => showToast("🚨 Coscia aumentata! Problemi di circolazione? Usa PharmoVen."), delay);
+                    delay += 4500;
+                }
             }
         }
 
@@ -682,18 +688,20 @@
             let diffBraccio = nowBraccio - oldBraccio;
             parts.push(`Braccio: ${diffBraccio > 0 ? '+' : ''}${diffBraccio.toFixed(1)}`);
             
-            if (diffBraccio >= 0.1) {
-                // AUMENTA
-                if (['gain','recomp'].includes(state.goal)) {
-                    // Se l'obiettivo è MASSA -> Bene
-                    setTimeout(() => showToast("💪 Braccio in crescita! Ottimo lavoro."), delay);
-                } else {
-                    // Se l'obiettivo è DIMAGRIMENTO -> Male (Ritenzione) -> Pharmodren
-                    setTimeout(() => showToast("💧 Braccio aumentato! Ritenzione idrica? Usa Pharmodren."), delay);
+            if (appReady) {
+                if (diffBraccio >= 0.1) {
+                    // AUMENTA
+                    if (['gain','recomp'].includes(state.goal)) {
+                        // Se fai massa -> Bene
+                        setTimeout(() => showToast("💪 Braccio in crescita! Ottimo lavoro."), delay);
+                    } else {
+                        // Se vuoi dimagrire -> Male (Ritenzione) -> Pharmodren
+                        setTimeout(() => showToast("💧 Braccio aumentato! Ritenzione idrica? Usa Pharmodren."), delay);
+                    }
+                } else if (diffBraccio <= -0.1) {
+                    // DIMINUISCE: Pharmofiller (Elasticità)
+                    setTimeout(() => showToast("✅ Braccio definito! Usa Pharmofiller per elasticità e tonicità."), delay);
                 }
-            } else if (diffBraccio <= -0.1) {
-                // DIMINUISCE: Pharmofiller (Elasticità)
-                setTimeout(() => showToast("✅ Braccio definito! Usa Pharmofiller per elasticità e tonicità."), delay);
             }
         }
 
@@ -706,7 +714,7 @@
             outputBox.style.color = "#004494"; 
             outputBox.style.fontWeight = "600";
         } else {
-            outputBox.innerText = "Aggiorna ogni 7 giorni per vedere le differenze.";
+            outputBox.innerText = "Compila oggi per vedere le differenze domani.";
             outputBox.style.color = "#666";
             outputBox.style.fontWeight = "400";
         }
@@ -873,9 +881,8 @@
     renderWater();
     const finalTotals = render(); 
     checkTimeAdvice(finalTotals.curP); 
+    appReady = true; 
+
 </script>
 </body>
 </html>
-
-
-
