@@ -289,25 +289,50 @@
         </div>
         <div id="protAlert" style="margin-top: 15px;"></div> </details>
 
-    <div class="add-box">
+     <div class="add-box">
+        <div style="background:#f0f4f8; padding:10px; border-radius:12px; margin-bottom:10px; border:1px solid #dbeafe;">
+            <label style="margin-bottom:5px; color:#004494; font-weight:700;">📂 I tuoi Cibi Salvati</label>
+            <div class="row">
+                <select id="favSelect" onchange="loadFav()" style="flex:1; font-weight:600; color:#004494;">
+                    <option value="">-- Scegli o Crea Nuovo --</option>
+                </select>
+                <button onclick="deleteFav()" style="background:#ff3b30; color:white; border:none; padding:0 12px; border-radius:10px; font-weight:700;">X</button>
+            </div>
+        </div>
+
         <div class="row">
-            <input type="text" id="inName" placeholder="Cibo (es. Pasta, Pollo...)" style="flex:2">
-            <input type="number" id="inCal" placeholder="Kcal" style="flex:1">
+            <input type="text" id="inName" placeholder="Nome Cibo (es. Pollo)" style="flex:2; font-weight:600;">
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#888; margin-top:5px; padding:0 5px;">
+            <span>Kcal (su 100g)</span><span>Carb</span><span>Prot</span><span>Gras</span>
         </div>
         <div class="row small-inputs">
-            <input type="number" id="inCarb" placeholder="Carb"><input type="number" id="inProt" placeholder="Prot"><input type="number" id="inFat" placeholder="Grass">
+            <input type="number" id="inCal100" placeholder="Kcal" style="border-color:#ccc;">
+            <input type="number" id="inCarb100" placeholder="C">
+            <input type="number" id="inProt100" placeholder="P">
+            <input type="number" id="inFat100" placeholder="G">
         </div>
-        <button class="btn-main" onclick="add()">Aggiungi</button>
-    </div>
-    <ul class="food-list" id="list"></ul>
-    <button onclick="resetAll()" style="background:none; border:1px solid #eee; padding:12px; border-radius:10px; color:#999; font-size:0.8rem; margin-top:20px; width:100%;">🗑️ Inizia nuova giornata</button>
-        <div style="text-align:center; margin-top:15px; padding-bottom:10px;">
-        <span onclick="document.getElementById('disclaimerModal').style.display='flex'" style="font-size:0.7rem; color:#888; cursor:pointer; text-decoration:underline;">
-            ✅ Disclaimer & Privacy (Accettato)
-        </span>
+
+        <div class="row" style="align-items: center; margin-top:10px; background:#fafafa; padding:8px; border-radius:10px; border:1px solid #eee;">
+            <span style="font-size:0.85rem; font-weight:700; color:#333;">⚖️ Quantità che mangi:</span>
+            <input type="number" id="inGrams" placeholder="g" value="100" style="width:80px; text-align:center; font-weight:700; color:#007aff; font-size:1.1rem;">
+            <span style="font-size:0.85rem; color:#666;">grammi</span>
+        </div>
+
+        <div class="row" style="margin-top:10px; gap:10px;">
+            <button class="btn-main" onclick="saveFav()" style="background:#fff; border:2px solid #007aff; color:#007aff; flex:1; padding:10px; font-size:0.8rem;">💾 Salva Cibo<br>& Grammi</button>
+            <button class="btn-main" onclick="addCalculated()" style="flex:2; margin-top:0; background:linear-gradient(135deg, #1c1c1e 0%, #3a3a3c 100%);">➕ Aggiungi al Diario</button>
+        </div>
     </div>
 
-</div>
+<ul id="list" class="food-list"></ul>
+
+        <div style="text-align:center; margin-top:30px; margin-bottom:20px;">
+        <span style="font-size:0.75rem; color:#aaa; cursor:pointer; text-decoration:underline;" onclick="document.getElementById('disclaimerModal').style.display='flex'">
+            Disclaimer e Privacy (Accettato)
+        </span>
+    </div>
 
 <script>
     // --- COSTANTI & INIT ---
@@ -400,10 +425,12 @@
 
     // --- STATO E VARIABILI GLOBALI ---
     let foods = JSON.parse(localStorage.getItem('foods_v3')) || [];
+        let customFoods = JSON.parse(localStorage.getItem('custom_foods_v1')) || {};
     let waterCount = parseInt(localStorage.getItem('water_count')) || 0;
     let cumulativeDeficit = parseFloat(localStorage.getItem('cumulative_deficit')) || 0;
     let streakCount = parseInt(localStorage.getItem('streak_days')) || 1;
     let appReady = false; // Variabile per silenziare i toast all'avvio
+
 
     
     // Recupero Profilo
@@ -463,11 +490,12 @@
     }
 
     // --- FUNZIONI UTILI ---
-    function showToast(msg) {
+        function showToast(msg) {
         const t = document.getElementById('smartToast');
         document.getElementById('toastMsg').innerText = msg;
         t.classList.add('toast-visible');
-        setTimeout(() => t.classList.remove('toast-visible'), 6000);
+        // Ora rimane visibile per 10 secondi (10000 ms)
+        setTimeout(() => t.classList.remove('toast-visible'), 10000); 
     }
     
     function copyCode(el) { navigator.clipboard.writeText(el.innerText); alert("Codice copiato!"); }
@@ -477,6 +505,103 @@
         localStorage.setItem(id === 'rewardModal' ? 'reward_claimed' : 'water_reward_claimed', 'true');
     }
     function acceptTerms() { document.getElementById('disclaimerModal').style.display = 'none'; localStorage.setItem('terms_accepted_v1', 'true'); document.getElementById('profileDetails').open = true; }
+    // --- GESTIONE DATABASE CIBI PERSONALE ---
+    
+       // --- GESTIONE CIBI AVANZATA ---
+
+    // 1. Carica la tendina
+    function renderFavSelect() {
+        const sel = document.getElementById('favSelect');
+        sel.innerHTML = '<option value="">-- Scegli o Crea Nuovo --</option>';
+        Object.keys(customFoods).sort().forEach(name => {
+            let opt = document.createElement('option');
+            opt.value = name;
+            opt.innerText = name;
+            sel.appendChild(opt);
+        });
+    }
+
+    // 2. Carica Cibo + Grammatura salvata
+    function loadFav() {
+        const name = document.getElementById('favSelect').value;
+        if(customFoods[name]) {
+            const f = customFoods[name];
+            document.getElementById('inName').value = name;
+            document.getElementById('inCal100').value = f.k;
+            document.getElementById('inCarb100').value = f.c;
+            document.getElementById('inProt100').value = f.p;
+            document.getElementById('inFat100').value = f.f;
+            // Carica la grammatura preferita (o 100 se non esiste)
+            document.getElementById('inGrams').value = f.defG || 100; 
+        }
+    }
+
+    // 3. Salva Cibo + Grammatura attuale
+    function saveFav() {
+        const n = document.getElementById('inName').value.trim();
+        const k = parseFloat(document.getElementById('inCal100').value);
+        const c = parseFloat(document.getElementById('inCarb100').value)||0;
+        const p = parseFloat(document.getElementById('inProt100').value)||0;
+        const f = parseFloat(document.getElementById('inFat100').value)||0;
+        const g = parseFloat(document.getElementById('inGrams').value)||100;
+
+        if(!n || isNaN(k)) { alert("Inserisci Nome e Kcal per salvare."); return; }
+
+        customFoods[n] = { k, c, p, f, defG: g }; // Salva anche i grammi preferiti
+        localStorage.setItem('custom_foods_v1', JSON.stringify(customFoods));
+        renderFavSelect();
+        document.getElementById('favSelect').value = n;
+        showToast("Salvato! Ricorderò questi grammi.");
+    }
+
+    // 4. Elimina Cibo
+    function deleteFav() {
+        const n = document.getElementById('favSelect').value;
+        if(n && confirm(`Eliminare "${n}"?`)) {
+            delete customFoods[n];
+            localStorage.setItem('custom_foods_v1', JSON.stringify(customFoods));
+            renderFavSelect();
+            document.querySelectorAll('.add-box input').forEach(i => i.value = '');
+        }
+    }
+
+    // 5. CALCOLA E AGGIUNGE AL DIARIO (Sostituisce la vecchia add)
+        function addCalculated() {
+        const n = document.getElementById('inName').value;
+        const k100 = parseFloat(document.getElementById('inCal100').value);
+        const c100 = parseFloat(document.getElementById('inCarb100').value)||0;
+        const p100 = parseFloat(document.getElementById('inProt100').value)||0;
+        const f100 = parseFloat(document.getElementById('inFat100').value)||0;
+        const g = parseFloat(document.getElementById('inGrams').value);
+
+        if(n && !isNaN(k100) && g > 0) {
+            const finalK = Math.round((k100 * g) / 100);
+            const finalC = Math.round((c100 * g) / 100);
+            const finalP = Math.round((p100 * g) / 100);
+            const finalF = Math.round((f100 * g) / 100);
+
+            foods.push({ n: `${n} (${g}g)`, k: finalK, c: finalC, p: finalP, f: finalF });
+            
+            // --- QUESTA È LA RIGA CHE MANCAVA PER SALVARE ---
+            localStorage.setItem('foods_v3', JSON.stringify(foods)); 
+            // ------------------------------------------------
+
+            document.querySelectorAll('.add-box input').forEach(i=>i.value=''); 
+            document.getElementById('inGrams').value = '100'; 
+
+            render();
+            checkSmartAdvice(n, finalK, finalC, TGT_CAL);
+            showToast(`Aggiunto: ${finalK} kcal`);
+
+            const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
+            let curP = foods.reduce((a,b)=>a+b.p, 0);
+            if (ptCheck > 0 && finalP >= 30 && curP < ptCheck) {
+                showToast(`Ottimo carico proteico! 💪`);
+            }
+        } else {
+            alert("Compila i dati e la grammatura.");
+        }
+    }
 
     // --- LOGICA PRINCIPALE (CALC) ---
     function calc() {
@@ -565,60 +690,77 @@
         localStorage.setItem('last_day_target', TGT_CAL);
     }
 
-    // --- RENDER UI ---
+    // --- RENDER UI CORRETTO ---
     function render() {
-        const list = document.getElementById('list'); list.innerHTML = '';
+        const list = document.getElementById('list'); 
+        if(list) list.innerHTML = '';
+        
         let curCal=0, curC=0, curP=0, curF=0;
         
+        // 1. Disegna Lista
         foods.slice().reverse().forEach((f, idx) => {
             curCal += f.k; curC += f.c; curP += f.p; curF += f.f;
             const li = document.createElement('li'); li.className = 'food-item';
             li.innerHTML = `<div class="food-info"><div class="food-name">${f.n}</div><div class="food-details">C:${f.c} P:${f.p} G:${f.f}</div></div><div class="food-actions"><span class="food-cal">${f.k}</span><button class="btn-del" onclick="rem(${foods.length - 1 - idx})">elimina</button></div>`;
-            list.appendChild(li);
+            if(list) list.appendChild(li);
         });
 
-        // Totali e Barre
+        // 2. Calcoli
         let diff = TGT_CAL - curCal;
-        document.getElementById('remCal').innerText = diff;
-        document.getElementById('remCal').style.color = diff < 0 ? 'var(--danger)' : 'var(--text-main)';
+        const remEl = document.getElementById('remCal');
+        if(remEl) { remEl.innerText = diff; remEl.style.color = diff < 0 ? 'var(--danger)' : 'var(--text-main)'; }
         
-        let pct = Math.min((curCal / TGT_CAL) * 100, 100);
+        let pct = TGT_CAL > 0 ? Math.min((curCal / TGT_CAL) * 100, 100) : 0;
         let barColor = "var(--success)"; let msgText = "✅ Ottimo lavoro!";
         if (curCal < BMR) { barColor = "var(--warn)"; msgText = "⚠️ Energia insufficiente"; }
         else if (curCal > TGT_CAL) { barColor = "var(--danger)"; msgText = "⛔ Limite superato"; }
-        document.getElementById('calBar').style.width = pct + "%";
-        document.getElementById('calBar').style.background = barColor;
-        document.getElementById('statusText').innerText = msgText; document.getElementById('statusText').style.color = barColor;
+        
+        const calBar = document.getElementById('calBar');
+        if(calBar) { calBar.style.width = pct + "%"; calBar.style.background = barColor; }
+        
+        const stText = document.getElementById('statusText');
+        if(stText) { stText.innerText = msgText; stText.style.color = barColor; }
 
         setBar('carb', curC, TGT_C); setBar('prot', curP, TGT_P); setBar('fat', curF, TGT_F);
 
-        // Carte Precisione
+        // 3. Precisione
         const badge = document.getElementById('bullseyeBadge');
-        let cardC='card-default', cardT='Inizia a loggare';
-        if(diff < 0) { cardC='card-default'; cardT=`❌ SFORATO di ${Math.abs(diff)} Kcal`; }
-        else if(diff<=50 && curCal>0) { cardC='card-gold'; cardT='🥇 ORO (Perfetto)'; }
-        else if(diff<=100 && curCal>0) { cardC='card-silver'; cardT='🥈 ARGENTO (Ottima)'; }
-        else if(diff<=200 && curCal>0) { cardC='card-bronze'; cardT='🥉 BRONZO (Buona)'; }
-        else if(curCal>0) { cardC='card-default'; cardT='⚠️ INCOMPLETO'; }
-        badge.className = `precision-card ${cardC}`; badge.innerText = cardT;
-        
-        let precLvl=0; 
-        if(cardC==='card-gold') precLvl=3; else if(cardC==='card-silver') precLvl=2; else if(cardC==='card-bronze') precLvl=1;
-        localStorage.setItem('last_day_precision', precLvl);
+        if(badge) {
+            let cardC='card-default', cardT='Inizia a loggare';
+            if(diff < 0) { cardC='card-default'; cardT=`❌ SFORATO di ${Math.abs(diff)} Kcal`; }
+            else if(diff<=50 && curCal>0) { cardC='card-gold'; cardT='🥇 ORO (Perfetto)'; }
+            else if(diff<=100 && curCal>0) { cardC='card-silver'; cardT='🥈 ARGENTO (Ottima)'; }
+            else if(diff<=200 && curCal>0) { cardC='card-bronze'; cardT='🥉 BRONZO (Buona)'; }
+            else if(curCal>0) { cardC='card-default'; cardT='⚠️ INCOMPLETO'; }
+            badge.className = `precision-card ${cardC}`; badge.innerText = cardT;
+            let precLvl=0; if(cardC==='card-gold') precLvl=3; else if(cardC==='card-silver') precLvl=2; else if(cardC==='card-bronze') precLvl=1;
+            localStorage.setItem('last_day_precision', precLvl);
+        }
 
-        // Avviso Proteico (SOLO ATLETI/RECOMP)
+          // 4. Avvisi Proteine (Versione compatta con "minimi")
         const highProtGoals = ['lose_athlete_15', 'lose_cons', 'recomp'];
         const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
         let alertHTML = '';
-        
-        if (highProtGoals.includes(state.goal) && ptCheck > 0 && curCal > 0) {
-            if (curP < ptCheck) alertHTML = `<div style="color:var(--orange); font-size:0.8rem; font-weight:700; background:#fff5e6; padding:8px; border-radius:8px; margin-top:10px; border:1px solid var(--orange); text-align: center;">⚠️ **Attenzione Atleta!** Quota minima proteica (${ptCheck}g) non raggiunta. Proteggi i muscoli!</div>`;
-            else alertHTML = `<div style="color:var(--success); font-size:0.8rem; font-weight:600; margin-top:10px; text-align: center;">✅ Ottimo! Muscoli Protetti (${curP}g su ${ptCheck}g minimi).</div>`;
-        }
-        document.getElementById('protAlert').innerHTML = alertHTML;
+        const currentHour = new Date().getHours(); 
 
-        // Cumulative
-        document.getElementById('cumulativeDisplay').innerText = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1) + " Kg";
+        if (highProtGoals.includes(state.goal) && ptCheck > 0 && curCal > 0) {
+            // A. OBIETTIVO RAGGIUNTO (Verde - Compatto ed esplicativo)
+            if (curP >= ptCheck) {
+                alertHTML = `<div style="color:var(--success); font-size:0.8rem; font-weight:600; margin-top:10px; text-align: center;">✅ Ottimo! Muscoli Protetti (${curP}g su ${ptCheck}g minimi).</div>`;
+            }
+            // B. OBIETTIVO MANCATO (Arancione - Solo dopo le 17:00)
+            else if (currentHour >= 17) {
+                alertHTML = `<div style="color:var(--orange); font-size:0.8rem; font-weight:700; background:#fff5e6; padding:8px; border-radius:8px; margin-top:10px; border:1px solid var(--orange); text-align: center;">⚠️ **Attenzione Atleta!** Quota minima proteica (${ptCheck}g) non ancora raggiunta. Recupera a cena!</div>`;
+            }
+        }
+        
+        const protAlert = document.getElementById('protAlert');
+        if(protAlert) protAlert.innerHTML = alertHTML;
+
+        const cumDisplay = document.getElementById('cumulativeDisplay');
+        if(cumDisplay) cumDisplay.innerText = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1) + " Kg";
+
+        return { curP: curP, curCal: curCal }; 
     }
 
     function setBar(id, val, max) {
@@ -652,11 +794,11 @@
                 if (diffAddome <= -0.1) {
                     // DIMINUISCE: Pharmofiller (Elasticità)
                     setTimeout(() => showToast("✅ Addome ridotto! Usa Pharmofiller per elasticità e tonicità."), delay);
-                    delay += 4500; 
+                    delay += 10500; 
                 } else if (diffAddome >= 0.1) {
                     // AUMENTA: Pharmolain (Gonfiore)
                     setTimeout(() => showToast("⚠️ Addome aumentato! Gonfiore? Usa Pharmolain."), delay);
-                    delay += 4500;
+                    delay += 10500;
                 }
             }
         }
@@ -672,11 +814,11 @@
                 if (diffCoscia <= -0.1) {
                     // DIMINUISCE: Pharmofiller (Elasticità)
                     setTimeout(() => showToast("✅ Coscia più snella! Usa Pharmofiller per elasticità e tonicità."), delay);
-                    delay += 4500;
+                    delay += 10500;
                 } else if (diffCoscia >= 0.1) {
                     // AUMENTA: PharmoVen (Circolazione)
                     setTimeout(() => showToast("🚨 Coscia aumentata! Problemi di circolazione? Usa PharmoVen."), delay);
-                    delay += 4500;
+                    delay += 10500;
                 }
             }
         }
@@ -762,27 +904,6 @@
         }
     }
 
-
-    // --- ACTIONS ---
-    function add() {
-        let n = document.getElementById('inName').value;
-        let k = parseInt(document.getElementById('inCal').value);
-        let c = parseInt(document.getElementById('inCarb').value)||0;
-        let p = parseInt(document.getElementById('inProt').value)||0;
-        let f = parseInt(document.getElementById('inFat').value)||0;
-        if(n && k) {
-            foods.push({n,k,c,p,f});
-            document.querySelectorAll('.add-box input').forEach(i=>i.value='');
-            render();
-            checkSmartAdvice(n, k, c, TGT_CAL);
-            showToast("Alimento aggiunto!"); 
-            
-            const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
-            if (ptCheck > 0 && p >= 30 && (curP || 0) < ptCheck) {
-                showToast(`Pasto Ricco di Proteine! 🥩 Massimizza l'assorbimento con Pharmolain.`);
-            }
-        }
-    }
     function rem(i) { foods.splice(i, 1); render(); }
     function resetAll() { if(confirm("Vuoi iniziare una nuova giornata?\n\nATTENZIONE: Se hai completato la giornata e superato le 4:00 AM, il deficit calorico di oggi è già stato salvato automaticamente. Se cancelli ora, perderai solo i dati inseriti dopo l'ultimo reset giornaliero.")) { foods=[]; localStorage.setItem('foods_v3', '[]'); waterCount=0; renderWater(); render(); } }
     
@@ -877,6 +998,7 @@
     pel.innerText = `${ps}/5 gg ORO`;
     if(ps>=5) { pel.innerText = `💎 PLATINO (${ps}gg)`; pel.style.color="#FFD700"; }
 
+    renderFavSelect();
     calc();
     renderWater();
     const finalTotals = render(); 
@@ -886,5 +1008,7 @@
 </script>
 </body>
 </html>
+
+
 
 
