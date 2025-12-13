@@ -964,7 +964,12 @@
         }
     }
 
-    function rem(i) { foods.splice(i, 1); render(); }
+        function rem(i) { 
+        foods.splice(i, 1); 
+        localStorage.setItem('foods_v3', JSON.stringify(foods)); // <--- RIGA AGGIUNTA
+        render(); 
+    }
+
     function resetAll() { if(confirm("Vuoi iniziare una nuova giornata?\n\nATTENZIONE: Se hai completato la giornata e superato le 4:00 AM, il deficit calorico di oggi è già stato salvato automaticamente. Se cancelli ora, perderai solo i dati inseriti dopo l'ultimo reset giornaliero.")) { foods=[]; localStorage.setItem('foods_v3', '[]'); waterCount=0; renderWater(); render(); } }
     
     // --- WATER ---
