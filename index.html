@@ -457,7 +457,7 @@
     };
 
     // Variabili Calcolate Globale
-    let TGT_CAL = 0, TGT_C = 0, TGT_P = 0, TGT_F = 0, BMR = 0, TDEE = 0, PT_MIN_G = 0, TGT_MIN_KCAL = 0; // <-- VIRGOLA AGGIUNTA
+    let TGT_CAL = 0, TGT_C = 0, TGT_P = 0, TGT_F = 0, BMR = 0, TDEE = 0, PT_MIN_G = 0;
 
     // --- RESET GIORNALIERO (4:00 AM) ---
     const now = new Date(); now.setHours(now.getHours() - 4);
@@ -640,13 +640,10 @@
         BMR = (state.g === 'm') ? s + 5 : s - 161;
         TDEE = Math.round(BMR * state.act);
 
-              // Goal Logic
+        // Goal Logic
         let adj = { 'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 'detox': 0.95, 'beauty': 1.0, 'recomp': 0.95, 'maintain': 1.0, 'gain': 1.10 };
         TGT_CAL = Math.round(TDEE * adj[state.goal]);
         if (TGT_CAL < BMR) TGT_CAL = Math.round(BMR);
-        
-        // Nuovo Limite Minimo Catabolismo (20% sotto TDEE, ma mai sotto BMR)
-        TGT_MIN_KCAL = Math.max(Math.round(TDEE * 0.80), BMR);
         
                 // --- BLOCCO DATA DI SICUREZZA (RIPRISTINATO) ---
         if (state.targetW > 0 && state.w > state.targetW) {
@@ -724,65 +721,23 @@
             if(list) list.appendChild(li);
         });
 
-        // 2. Calcoli (Esteso per Atleti/Ricomposizione con Ritardo Temporale)
+        // 2. Calcoli
         let diff = TGT_CAL - curCal;
         const remEl = document.getElementById('remCal');
         if(remEl) { remEl.innerText = diff; remEl.style.color = diff < 0 ? 'var(--danger)' : 'var(--text-main)'; }
         
         let pct = TGT_CAL > 0 ? Math.min((curCal / TGT_CAL) * 100, 100) : 0;
-        let barColor = "var(--success)"; 
-        let msgText = "✅ Ottimo lavoro!";
-        let barTextColor = barColor; 
+        let barColor = "var(--success)"; let msgText = "✅ Ottimo lavoro!";
+        if (curCal < BMR) { barColor = "var(--warn)"; msgText = "⚠️ Energia insufficiente"; }
+        else if (curCal > TGT_CAL) { barColor = "var(--danger)"; msgText = "⛔ Limite superato"; }
         
-                                const currentHour = new Date().getHours(); 
-        // highRiskGoals ORA ESCLUDE 'lose_aggr' (Perdita Peso Standard)
-        const highRiskGoals = ['lose_athlete_15', 'lose_cons', 'recomp'];
-        const isHighRisk = highRiskGoals.includes(state.goal);
-
-        if (curCal > TGT_CAL) {
-
-
-            // 1. Sforato (Per tutti)
-            barColor = "var(--danger)";
-            msgText = "⛔ Limite superato";
-            barTextColor = barColor;
-        } else if (curCal >= TGT_CAL) {
-            // 5. Logica finale di successo (Target raggiunto)
-            barColor = "var(--success)"; 
-            msgText = "✅ Obiettivo calorico giornaliero raggiunto!";
-            barTextColor = barColor;
-        } else if (isHighRisk && curCal < TGT_CAL && curCal >= TGT_MIN_KCAL) {
-            // 4. Deficit Controllato (Solo per target ATLETA/RECOMP, sempre attivo)
-            barColor = "var(--warn)";
-            msgText = "⚠️ Mantieniti nel Deficit Controllato";
-            barTextColor = barColor;
-        } 
-        // --- INIZIO BLOCCO ALLARMI RITARDATO (DOPO LE 17:00) ---
-        else if (currentHour >= 17) {
-            
-            if (isHighRisk && curCal < TGT_MIN_KCAL) {
-                // 2. Rischio Catabolismo (Solo per target ATLETA/RECOMP)
-                barColor = "var(--orange)";
-                msgText = `🚨 Rischio Catabolismo (Min: ${TGT_MIN_KCAL} Kcal)`;
-                barTextColor = barColor;
-            } else if (curCal < BMR) {
-                // 3. Deficit molto aggressivo (Per TUTTI i target, se sotto BMR)
-                barColor = "var(--warn)"; 
-                msgText = "⚠️ Deficit molto aggressivo (sotto Basale)";
-                barTextColor = barColor;
-            } 
-            
-        }
-        // --- FINE BLOCCO ALLARMI RITARDATO ---
-
         const calBar = document.getElementById('calBar');
         if(calBar) { calBar.style.width = pct + "%"; calBar.style.background = barColor; }
         
         const stText = document.getElementById('statusText');
-        if(stText) { stText.innerText = msgText; stText.style.color = barTextColor; } 
-        
-         setBar('carb', curC, TGT_C); setBar('prot', curP, TGT_P); setBar('fat', curF, TGT_F);
+        if(stText) { stText.innerText = msgText; stText.style.color = barColor; }
 
+        setBar('carb', curC, TGT_C); setBar('prot', curP, TGT_P); setBar('fat', curF, TGT_F);
 
         // 3. Precisione
         const badge = document.getElementById('bullseyeBadge');
@@ -802,7 +757,7 @@
         const highProtGoals = ['lose_athlete_15', 'lose_cons', 'recomp'];
         const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
         let alertHTML = '';
-        const proteinHour = new Date().getHours(); 
+        const currentHour = new Date().getHours(); 
 
         if (highProtGoals.includes(state.goal) && ptCheck > 0 && curCal > 0) {
             // A. OBIETTIVO RAGGIUNTO (Verde - Compatto ed esplicativo)
@@ -810,7 +765,7 @@
                 alertHTML = `<div style="color:var(--success); font-size:0.8rem; font-weight:600; margin-top:10px; text-align: center;">✅ Ottimo! Muscoli Protetti (${curP}g su ${ptCheck}g minimi).</div>`;
             }
             // B. OBIETTIVO MANCATO (Arancione - Solo dopo le 17:00)
-            else if (proteinHour >= 17) {
+            else if (currentHour >= 17) {
                 alertHTML = `<div style="color:var(--orange); font-size:0.8rem; font-weight:700; background:#fff5e6; padding:8px; border-radius:8px; margin-top:10px; border:1px solid var(--orange); text-align: center;">⚠️ **Attenzione Atleta!** Quota minima proteica (${ptCheck}g) non ancora raggiunta. Recupera a cena!</div>`;
             }
         }
