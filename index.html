@@ -466,77 +466,108 @@
     if (localStorage.getItem('app_date') !== todayStr) {
         let lastTarget = parseFloat(localStorage.getItem('last_day_target')) || 0;
         let lastConsumed = parseFloat(localStorage.getItem('last_day_total_consumed')) || 0;
-        let lastBMR = parseFloat(localStorage.getItem('last_day_bmr')) || 0; // Recupera BMR di ieri
-
-          // Determina se il giorno precedente è stato un successo (raggiunto BMR, ignora lo sforamento)
+        let lastBMR = parseFloat(localStorage.getItem('last_day_bmr')) || 0; 
+        
+        // Logica BMR per la Streak (SUCCESS = RAGGIUNTO BMR, ignora sforamento)
         const daySuccess = lastConsumed >= lastBMR;
         
-        // 1. Deficit Cumulativo
+        // --- 1. Aggiornamento Deficit & Platino Check ---
         if (lastTarget > 0) {
             cumulativeDeficit += (lastTarget - lastConsumed);
             localStorage.setItem('cumulative_deficit', cumulativeDeficit);
         }
 
-        // 2. Platino Check (5 giorni)
         const lastPrecision = parseInt(localStorage.getItem('last_day_precision')) || 0;
         let pStreak = parseInt(localStorage.getItem('platinum_streak')) || 0;
         if (lastPrecision >= 3) pStreak++; else pStreak = 0;
         localStorage.setItem('platinum_streak', pStreak);
 
         if (pStreak >= 5 && !localStorage.getItem('claimed_platinum_5')) {
-            alert("💎 PLATINO SBLOCCATO! 5 giorni di precisione Oro!\n\nIl tuo premio speciale è: PHARMOSPED\n\nUsalo subito su pharmo.it per i tuoi prodotti preferiti!");
+            alert("💎 PLATINO SBLOCCATO! 5 giorni di precisione Oro!\n\nIl tuo premio speciale è: PHARMO5DAYS\n\nUsalo subito su pharmo.it per i tuoi prodotti preferiti!");
             window.open('https://www.pharmo.it', '_blank');
             localStorage.setItem('claimed_platinum_5', 'true');
         }
 
-        // 3. Reset Misure Circonferenze (Salva dati di ieri)
+        // --- 2. Streak Visiva & Logica Ciclica (NUOVA LOGICA) ---
+        let lastVisit = localStorage.getItem('last_visit_date');
+        let yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+        
+        // Gestione del contatore scadenza (days_since_30_win)
+        let daysSince30Win = parseInt(localStorage.getItem('days_since_30_win')) || 0;
+        
+        if (lastVisit === yesterday.toDateString() && daySuccess) {
+            // Successo Giornaliero
+            streakCount++;
+            
+            // Se la serie era in scadenza, incrementa il contatore di scadenza
+            if (daysSince30Win > 0) {
+                daysSince30Win++;
+                localStorage.setItem('days_since_30_win', daysSince30Win);
+            }
+            
+        } else {
+            // Serie interrotta o mancata visita (reset)
+            streakCount = 1; 
+            daysSince30Win = 0; // Se la serie si rompe, il timer di scadenza si annulla
+            localStorage.removeItem('days_since_30_win');
+            localStorage.removeItem('active_streak_code');
+        }
+        
+        // Reset Ciclico al 4° giorno dopo il 30°
+        if (daysSince30Win > 3) {
+            alert("🎉 La sfida Pharmo è ricominciata! La tua serie è stata resettata. Buona fortuna per il prossimo ciclo!");
+            streakCount = 1;
+            daysSince30Win = 0;
+            localStorage.removeItem('days_since_30_win');
+            localStorage.removeItem('active_streak_code');
+        }
+
+        localStorage.setItem('streak_days', streakCount);
+        localStorage.setItem('last_visit_date', todayStr);
+
+        // *CONTROLLO PREMI & CODICE ATTIVO (NOTIFICA UNICA)*
+        let rewardCode = null;
+        let claimedKey = null;
+
+        if (streakCount === 7 && !localStorage.getItem('claimed_7_days')) {
+            rewardCode = 'PHARMO7DAYS'; claimedKey = 'claimed_7_days';
+        } else if (streakCount === 14 && !localStorage.getItem('claimed_14_days')) {
+            rewardCode = 'PHARMO14DAYS'; claimedKey = 'claimed_14_days';
+        } else if (streakCount === 30 && !localStorage.getItem('claimed_30_days')) {
+            rewardCode = 'PHARMO30DAYS'; claimedKey = 'claimed_30_days';
+            // Avvia il timer di 3 giorni solo dopo aver sbloccato l'ultimo codice
+            localStorage.setItem('days_since_30_win', 1); 
+        }
+
+        if (rewardCode) {
+            alert(`🎉 Sfida Pharmo Completata! Hai raggiunto ${streakCount} giorni di successo consecutivi. Il tuo codice sconto è: ${rewardCode}`);
+            localStorage.setItem(claimedKey, 'true');
+            // Salviamo il codice più alto sbloccato per la visualizzazione nella UI
+            localStorage.setItem('active_streak_code', rewardCode); 
+        } else if (streakCount >= 30) {
+            // Se siamo al 30° giorno o oltre (fino al reset), manteniamo il codice ORO come attivo
+             localStorage.setItem('active_streak_code', 'PHARMO30DAYS'); 
+        } else if (streakCount >= 14) {
+             localStorage.setItem('active_streak_code', 'PHARMO14DAYS'); 
+        } else if (streakCount >= 7) {
+             localStorage.setItem('active_streak_code', 'PHARMO7DAYS'); 
+        } else {
+             localStorage.removeItem('active_streak_code');
+        }
+
+
+        // --- 3. Reset Dati di Giornata ---
+        // 3a. Salvataggio Misure Circonferenze (Salva i dati di ieri)
         if (state.circ_abd > 0) localStorage.setItem('last_week_abd', state.circ_abd);
         if (state.circ_coscia > 0) localStorage.setItem('last_week_coscia', state.circ_coscia);
         if (state.circ_braccio > 0) localStorage.setItem('last_week_braccio', state.circ_braccio);
         
-        // 4. Streak Visiva & Controllo BMR (Logica che hai appena inserito)
-        let lastVisit = localStorage.getItem('last_visit_date');
-        let yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
-        
-        // La serie continua SOLO se: 1) C'è stata una visita ieri E 2) Il giorno precedente ha raggiunto il successo BMR
-        if (lastVisit === yesterday.toDateString() && daySuccess) {
-            streakCount++;
-        } else {
-            streakCount = 1; // Se non ha visitato o se non ha raggiunto il BMR, si ricomincia da 1
-        }
-        
-        localStorage.setItem('streak_days', streakCount);
-        localStorage.setItem('last_visit_date', todayStr);
-
-            // *CONTROLLO PREMI PER SERIE VISIVA*
-            let rewardCode = null;
-            let claimedKey = null;
-
-            if (streakCount === 7 && !localStorage.getItem('claimed_7_days')) {
-                rewardCode = 'PHARMO1100';
-                claimedKey = 'claimed_7_days';
-            } else if (streakCount === 14 && !localStorage.getItem('claimed_14_days')) {
-                rewardCode = 'PHARMO8756';
-                claimedKey = 'claimed_14_days';
-            } else if (streakCount === 30 && !localStorage.getItem('claimed_30_days')) {
-                rewardCode = 'PHARMO6598';
-                claimedKey = 'claimed_30_days';
-            }
-
-            if (rewardCode) {
-                alert(`🎉 Sfida Pharmo Completata! Hai raggiunto ${streakCount} giorni di successo consecutivi (minimo BMR raggiunto). Il tuo codice sconto è: ${rewardCode}`);
-                localStorage.setItem(claimedKey, 'true'); // Impedisce la riattivazione dell'alert
-            }
-        
-        // 5. RESET DEI DATI DI GIORNATA
-        foods = []; waterCount = 0;
+        // 3b. Reset Cibi, Acqua e Data
         localStorage.setItem('foods_v3', JSON.stringify([])); 
         localStorage.setItem('water_count', 0);
         localStorage.setItem('water_last_time', 0);
         localStorage.setItem('app_date', todayStr);
-        
-        // Non è necessario ricaricare foods e waterCount qui se li abbiamo appena resettati
-    } // <-- Questa è la parentesi di chiusura corretta del blocco if
+    }
 
 
     // --- FUNZIONI UTILI ---
@@ -1078,40 +1109,49 @@
         alert(msg);
     }
 
-                function showStreakInfo() {
+                            function showStreakInfo() {
         const streakCount = parseInt(localStorage.getItem('streak_days')) || 0; 
-        let rewardsList = '--- Codici Sbloccabili (Vantaggi su pharmo.it) ---\n';
+        const daysSince30Win = parseInt(localStorage.getItem('days_since_30_win')) || 0; 
         
-        // Logica condizionale per mostrare il codice o l'obiettivo
-        rewardsList += (streakCount >= 7) ? 
-            '✅ 7 Giorni: PHARMO7DAYS (Sbloccato)\n' : 
-            '🎯 7 Giorni: Codice Sconto\n';
-
-        rewardsList += (streakCount >= 14) ? 
-            '✅ 14 Giorni: PHARMO14DAYS (Sbloccato)\n' : 
-            '🎯 14 Giorni: Codice Sconto\n';
+        let rewardsDisplay = '--- Livelli Premiati (Vantaggi su pharmo.it) ---\n';
+        
+        // Mostra lo stato di tutti i livelli
+        rewardsDisplay += (streakCount >= 7) ? 
+            '✅ 7 Giorni (Codice Sbloccato)\n' : 
+            '🎯 7 Giorni (Prossimo Obiettivo)\n';
             
-        rewardsList += (streakCount >= 30) ? 
-            '✅ 30 Giorni: PHARMO30DAYS (Sbloccato)\n' : 
-            '🎯 30 Giorni: Codice Sconto\n';
-
+        rewardsDisplay += (streakCount >= 14) ? 
+            '✅ 14 Giorni (Codice Sbloccato)\n' : 
+            '🎯 14 Giorni (Prossimo Obiettivo)\n';
+            
+        rewardsDisplay += (streakCount >= 30) ? 
+            '✅ 30 Giorni (Codice Sbloccato)\n' : 
+            '🎯 30 Giorni (Prossimo Obiettivo)\n';
         
+        // Aggiungi il timer di scadenza (appare solo tra giorno 30 e 33)
+        let timerDisplay = '';
+        if (daysSince30Win > 0 && daysSince30Win <= 3) {
+            const daysLeft = 4 - daysSince30Win;
+            timerDisplay = `\n\n🚨 ATTENZIONE: La serie scadrà tra ${daysLeft} giorno/i. Dopo, la sfida ricomincerà!`;
+        }
+
         const msg = `🔥 SFIDA PHARMO - STATO SERIE 🔥
 
-Il tuo obiettivo è completare l'utilizzo giornaliero raggiungendo almeno il Metabolismo Basale (BMR), senza sforare il Target calorico.
+Il tuo obiettivo è completare l'utilizzo giornaliero raggiungendo almeno il **Metabolismo Basale (BMR)**.
 
 Stato attuale: ${streakCount} giorni consecutivi di successo.
 ----------------------------------------------------
 
-${rewardsList}
+${rewardsDisplay}
+${timerDisplay}
 
 ----------------------------------------------------
-💡 IMPORTANTE: La serie si interrompe se non raggiungi il Metabolismo Basale (BMR) nel corso della giornata precedente. \n Attenzione: i codici cambiano regolarmente. Assicurati di usarli subito appena ottenuti!`;
+💡 IMPORTANTE: La serie si interrompe **solo se non raggiungi il Metabolismo Basale (BMR)** nel corso della giornata precedente. \n ⚠️ Attenzione: i codici cambiano regolarmente. Assicurati di usarli subito appena ottenuti! `;
 
-        // Mostra l'alert principale
+        // Mostra l'alert principale della Sfida
         alert(msg);
         
-        // Mostra il promemoria del peso come alert separato e distinto
+        // MOSTRA L'AVVISO DEL PESO SEPARATAMENTE
         alert("⚠️ PROMEMORIA IMPORTANTE\n\nRicordati di aggiornare il tuo Peso Attuale e le tue Circonferenze nel profilo ogni 7 giorni per mantenere l'analisi previsionale accurata.");
     }
 
