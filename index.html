@@ -1113,9 +1113,9 @@
         const streakCount = parseInt(localStorage.getItem('streak_days')) || 0; 
         const daysSince30Win = parseInt(localStorage.getItem('days_since_30_win')) || 0; 
         
-                        let rewardsDisplay = '--- Livelli Premiati (Vantaggi su pharmo.it) ---\n';
+                                let rewardsDisplay = '--- Livelli Premiati (Vantaggi su pharmo.it) ---\n';
         
-        // Logica per determinare il codice massimo raggiunto
+        // 1. Determina il codice massimo attivo (quello che DEVE essere mostrato)
         let maxCode = '';
         if (streakCount >= 30) {
             maxCode = 'PHARMO30DAYS';
@@ -1125,26 +1125,30 @@
             maxCode = 'PHARMO7DAYS';
         }
 
-        // 1. Tracciamento 7 Giorni
+        // 2. Tracciamento 7 Giorni: Mostra il codice solo se è l'attivo
+        let display7 = (maxCode === 'PHARMO7DAYS') ? maxCode : 'Sbloccato';
         if (streakCount >= 7) {
-            rewardsDisplay += `✅ 7 Giorni: ${(maxCode === 'PHARMO1100') ? maxCode : 'Sbloccato (Attivo Sup.)'}\n`;
+            rewardsDisplay += `✅ 7 Giorni: ${display7}\n`;
         } else {
             rewardsDisplay += '🎯 7 Giorni: Prossimo Obiettivo\n';
         }
         
-        // 2. Tracciamento 14 Giorni
+        // 3. Tracciamento 14 Giorni: Mostra il codice solo se è l'attivo
+        let display14 = (maxCode === 'PHARMO14DAYS') ? maxCode : 'Sbloccato';
         if (streakCount >= 14) {
-            rewardsDisplay += `✅ 14 Giorni: ${(maxCode === 'PHARMO6598') ? maxCode : 'Sbloccato (Attivo Sup.)'}\n`;
+            rewardsDisplay += `✅ 14 Giorni: ${display14}\n`;
         } else {
             rewardsDisplay += '🎯 14 Giorni: Prossimo Obiettivo\n';
         }
         
-        // 3. Tracciamento 30 Giorni
+        // 4. Tracciamento 30 Giorni: Mostra il codice solo se è l'attivo
+        let display30 = (maxCode === 'PHARMO30DAYS') ? maxCode : 'Sbloccato';
         if (streakCount >= 30) {
-            rewardsDisplay += `✅ 30 Giorni: ${(maxCode === 'PHARMO8756') ? maxCode : 'Sbloccato (Attivo Sup.)'}\n`;
+            rewardsDisplay += `✅ 30 Giorni: ${display30}\n`;
         } else {
             rewardsDisplay += '🎯 30 Giorni: Prossimo Obiettivo\n';
         }
+
 
 
         // Aggiungi il timer di scadenza (appare solo tra giorno 30 e 33)
@@ -1219,6 +1223,7 @@ ${timerDisplay}
 </script>
 </body>
 </html>
+
 
 
 
