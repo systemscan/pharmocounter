@@ -760,24 +760,31 @@
             msgText = "⚠️ Continua ad aggiungere per raggiungere il basale.";
             barTextColor = barColor;
         } else if (isHighRisk) {
-            // 5. LOGICA ATLETA/RECOMP (Sopra BMR e sotto TGT_CAL)
+            // 5. LOGICA ATLETA/RECOMP
             
-            if (currentHour >= 17 && curCal < TGT_MIN_KCAL) {
-                // Rischio Catabolismo (Arancione) - DOPO LE 17:00 E SOTTO IL MINIMO
+            if (curCal >= TGT_MIN_KCAL) {
+                // 5a. SOPRA IL MINIMO DI SICUREZZA -> VERDE (Obiettivo primario raggiunto)
+                barColor = "var(--success)";
+                msgText = "✅ Ottimo Lavoro! Rischio Catabolismo ridotto."; // TUA FRASE
+                barTextColor = barColor;
+                
+            } else if (currentHour >= 17 && curCal < TGT_MIN_KCAL) {
+                // 5b. Rischio Catabolismo (Arancione) - SOLO DOPO LE 17:00 E SOTTO IL MINIMO
                 barColor = "var(--orange)";
                 msgText = `🚨 Rischio Catabolismo<br><span style="display: block; font-weight: 700; opacity: 0.9;">(Sotto Minimo: ${TGT_MIN_KCAL} Kcal)</span>`;
                 barTextColor = barColor;
             } else {
-                // Giallo per Deficit Controllato (Sopra BMR per Atleti)
+                // 5c. Giallo Precoce (Sotto TGT_MIN_KCAL, ma prima delle 17:00)
                 barColor = "var(--warn)";
                 msgText = `⚠️ Sei nel Deficit Ideale<br><span style="display: block; font-weight: 700; opacity: 0.9;">(Obiettivo Minimo: ${TGT_MIN_KCAL} Kcal)</span>`;
                 barTextColor = barColor;
             }
         }
-        
+
         // 6. Fallback Verde Finale (Ottimo Lavoro)
-        // Questo cattura: Obiettivi Standard sopra BMR o tutti gli obiettivi non in allarme.
-        if (barColor === "var(--success)" && curCal > 0) {
+        // AGGIUNTA CONDIZIONE: Applica "Ottimo lavoro!" generico SOLO se il goal NON è ad alto rischio,
+        // per NON sovrascrivere il messaggio specifico del Punto 5a ("Rischio Catabolismo ridotto").
+        if (barColor === "var(--success)" && curCal > 0 && !isHighRisk) {
             msgText = "✅ Ottimo lavoro!"; 
             barTextColor = barColor;
         }
