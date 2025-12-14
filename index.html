@@ -724,62 +724,73 @@
             if(list) list.appendChild(li);
         });
 
-        // 2. Calcoli (Esteso per Atleti/Ricomposizione con Ritardo Temporale)
+        // 2. Calcoli Preliminari per Barra & Avvisi
         let diff = TGT_CAL - curCal;
         const remEl = document.getElementById('remCal');
         if(remEl) { remEl.innerText = diff; remEl.style.color = diff < 0 ? 'var(--danger)' : 'var(--text-main)'; }
         
         let pct = TGT_CAL > 0 ? Math.min((curCal / TGT_CAL) * 100, 100) : 0;
         let barColor = "var(--success)"; 
-        let msgText = "✅ Ottimo lavoro!";
+        let msgText = "✅ Ottimo lavoro!"; // Default che sarà sovrascritto
         let barTextColor = barColor; 
         
         const currentHour = new Date().getHours(); 
-        // highRiskGoals ORA ESCLUDE 'lose_aggr' (Perdita Peso Standard)
         const highRiskGoals = ['lose_athlete_15', 'lose_cons', 'recomp'];
         const isHighRisk = highRiskGoals.includes(state.goal);
 
+        // --- LOGICA AVVISI CON PRIORITÀ ---
         if (curCal > TGT_CAL) {
-            // 1. Sforato (Per tutti)
+            // 1. Sforato (PRIORITÀ MASSIMA)
             barColor = "var(--danger)";
             msgText = "⛔ Limite superato";
             barTextColor = barColor;
+        } else if (curCal === 0) {
+            // 2. Inizio Giornata (Neutro)
+            msgText = "⚪ Inizia il tuo tracciamento!"; 
+            barTextColor = 'var(--text-sec)';
+            barColor = 'var(--success)';
         } else if (curCal >= TGT_CAL) {
-            // 5. Logica finale di successo (Target raggiunto)
-            barColor = "var(--success)"; 
-            msgText = "✅ Obiettivo calorico giornaliero raggiunto!";
+             // 3. Condizione di Successo Totale (Target Raggiunto)
+             msgText = "✅ Obiettivo calorico giornaliero raggiunto!";
+             barColor = "var(--success)";
+             barTextColor = barColor;
+        } else if (curCal > 0 && curCal < BMR) {
+            // 4. BMR ALLARME UNIVERSALE (Sotto Basale, SEMPRE GIALLO se ci sono Kcal)
+            barColor = "var(--warn)"; 
+            msgText = "⚠️ Continua ad aggiungere per raggiungere il basale.";
             barTextColor = barColor;
-        } else if (isHighRisk && curCal < TGT_CAL && curCal >= TGT_MIN_KCAL) {
-            // 4. Deficit Controllato (Solo per target ATLETA/RECOMP, sempre attivo)
-            barColor = "var(--warn)";
-            msgText = "⚠️ Mantieniti nel Deficit Controllato";
-            barTextColor = barColor;
-        } 
-        // --- INIZIO BLOCCO ALLARMI RITARDATO (DOPO LE 17:00) ---
-        else if (currentHour >= 17) {
+        } else if (isHighRisk) {
+            // 5. LOGICA ATLETA/RECOMP (Sopra BMR e sotto TGT_CAL)
             
-            if (isHighRisk && curCal < TGT_MIN_KCAL) {
-                // 2. Rischio Catabolismo (Solo per target ATLETA/RECOMP)
+            if (currentHour >= 17 && curCal < TGT_MIN_KCAL) {
+                // Rischio Catabolismo (Arancione) - DOPO LE 17:00 E SOTTO IL MINIMO
                 barColor = "var(--orange)";
-                msgText = `🚨 Rischio Catabolismo (Min: ${TGT_MIN_KCAL} Kcal)`;
+                msgText = `🚨 Rischio Catabolismo<br><span style="display: block; font-weight: 700; opacity: 0.9;">(Sotto Minimo: ${TGT_MIN_KCAL} Kcal)</span>`;
                 barTextColor = barColor;
-            } else if (curCal < BMR) {
-                // 3. Deficit molto aggressivo (Per TUTTI i target, se sotto BMR)
-                barColor = "var(--warn)"; 
-                msgText = "⚠️ Deficit molto aggressivo (sotto Basale)";
+            } else {
+                // Giallo per Deficit Controllato (Sopra BMR per Atleti)
+                barColor = "var(--warn)";
+                msgText = `⚠️ Sei nel Deficit Ideale<br><span style="display: block; font-weight: 700; opacity: 0.9;">(Obiettivo Minimo: ${TGT_MIN_KCAL} Kcal)</span>`;
                 barTextColor = barColor;
-            } 
-            
+            }
         }
-        // --- FINE BLOCCO ALLARMI RITARDATO ---
+        
+        // 6. Fallback Verde Finale (Ottimo Lavoro)
+        // Questo cattura: Obiettivi Standard sopra BMR o tutti gli obiettivi non in allarme.
+        if (barColor === "var(--success)" && curCal > 0) {
+            msgText = "✅ Ottimo lavoro!"; 
+            barTextColor = barColor;
+        }
 
+        // **********************************************
+        // VISUALIZZAZIONE BARRA E MACRO
+        // **********************************************
         const calBar = document.getElementById('calBar');
         if(calBar) { calBar.style.width = pct + "%"; calBar.style.background = barColor; }
         
         const stText = document.getElementById('statusText');
-        if(stText) { stText.innerText = msgText; stText.style.color = barTextColor; } 
+        if(stText) { stText.innerHTML = msgText; stText.style.color = barTextColor; } 
         
-        // CORREZIONE MACRO: Chiamata a setBar spostata qui per essere certa
         setBar('carb', curC, TGT_C); setBar('prot', curP, TGT_P); setBar('fat', curF, TGT_F);
 
 
@@ -822,6 +833,8 @@
 
         return { curP: curP, curCal: curCal }; 
     }
+
+
 
     function setBar(id, val, max) {
         document.getElementById(id+'Bar').style.width = Math.min((val/max)*100, 100) + "%";
