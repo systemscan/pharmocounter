@@ -554,16 +554,25 @@
         } else {
              localStorage.removeItem('active_streak_code');
         }
-        // --- LOGICA STREAK ACQUA (Se ieri non hai vinto, azzera) ---
+                // --- LOGICA AVANZATA ACQUA (Reset Fallimento & Riavvio Ciclo) ---
         let wStreak = parseInt(localStorage.getItem('water_streak_days')) || 0;
         let lastWin = localStorage.getItem('last_water_win_date');
         let yest = new Date(now); yest.setDate(yest.getDate() - 1);
         
-        // Se l'ultima vittoria non è data "ieri", hai perso la streak
+        // CASO 1: Hai saltato ieri? -> Azzera tutto (Fallimento)
         if (lastWin !== yest.toDateString()) {
-            if (wStreak > 0) localStorage.setItem('water_streak_days', 0);
+            if (wStreak > 0) {
+                localStorage.setItem('water_streak_days', 0);
+                localStorage.removeItem('water_reward_claimed'); // Rimuovi il blocco premio
+                localStorage.removeItem('water_challenge_code_seen');
+            }
+        } 
+        // CASO 2: Hai completato il ciclo (3 giorni)? -> Azzera per ricominciare (Vittoria)
+        else if (wStreak >= 3) {
+            localStorage.setItem('water_streak_days', 0);
+            localStorage.removeItem('water_reward_claimed'); // Resetta il premio così puoi rivincerlo
+            localStorage.removeItem('water_challenge_code_seen');
         }
-
 
         // --- 3. Reset Dati di Giornata ---
         // 3a. Salvataggio Misure Circonferenze (Salva i dati di ieri)
@@ -1239,6 +1248,7 @@ ${timerDisplay}
 </script>
 </body>
 </html>
+
 
 
 
