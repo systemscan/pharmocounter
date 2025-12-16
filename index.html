@@ -217,24 +217,50 @@
                 </select>
             </div>
 
-            <details class="card" style="grid-column: 1 / -1; margin-top: 10px; padding: 15px; background: #f0f4f8; border: 1px solid #dbeafe;">
-                <summary style="font-size: 0.9rem; color: #004494; font-weight: 700;">🎯 Obiettivi & Misure <span style="font-weight:400; opacity:0.7;">(Opzionali)</span></summary>
-                <div class="settings-grid" style="margin-top: 15px;">
-                    <div style="grid-column: 1 / -1; border-bottom: 1px solid #cceeff; padding-bottom: 5px; margin-bottom: 5px;">
-                        <span style="font-size:0.75rem; font-weight:700; color:#004494; text-transform:uppercase;">Il tuo Traguardo</span>
-                    </div>
-                    <div><label>Peso Obiettivo (kg)</label><input type="number" id="targetWeightInput" placeholder="es. 65" onchange="calc()"></div>
-                    <div><label>Data Obiettivo</label><input type="date" id="targetDateInput" onchange="calc()"></div>
+<details class="card" style="grid-column: 1 / -1; margin-top: 10px; padding: 15px; background: #f0f4f8; border: 1px solid #dbeafe;">
+    <summary style="font-size: 0.9rem; color: #004494; font-weight: 700;">🎯 Obiettivi & Misure <span style="font-weight:400; opacity:0.7;">(Opzionali)</span></summary>
+    
+    <div class="settings-grid" style="margin-top: 15px; align-items: end; grid-gap: 15px;">
+        
+        <div style="grid-column: 1 / -1; border-bottom: 1px solid #cceeff; padding-bottom: 5px; margin-bottom: -5px;">
+            <span style="font-size:0.75rem; font-weight:700; color:#004494; text-transform:uppercase;">Il tuo Traguardo</span>
+        </div>
+        
+        <div>
+            <label>Peso Obiettivo (kg)</label>
+            <input type="number" id="targetWeightInput" placeholder="es. 65" onchange="calc()" style="height: 42px;">
+        </div>
+        
+        <div>
+            <label>Data Obiettivo</label>
+            <input type="date" id="targetDateInput" onchange="calc()" style="height: 42px;">
+        </div>
 
-                    <div style="grid-column: 1 / -1; border-bottom: 1px solid #cceeff; padding-bottom: 5px; margin-bottom: 5px; margin-top: 15px;">
-                        <span style="font-size:0.75rem; font-weight:700; color:#004494; text-transform:uppercase;">Analisi Corporea (cm)</span>
-                    </div>
-                    <div><label>Addome (Ombelico)</label><input type="number" id="circ_abd" placeholder="cm" onchange="calc()"></div>
-                    <div><label>Coscia (Alta)</label><input type="number" id="circ_coscia" placeholder="cm" onchange="calc()"></div>
-                    <div id="braccio_input_wrapper" style="grid-column: 1 / -1;"><label>Braccio (Bicipite)</label><input type="number" id="circ_braccio" placeholder="cm" onchange="calc()"></div>
-                    <div class="info-box" id="circAnalysis" style="grid-column: 1 / -1; margin-top: 5px; background: white; border-color: #cceeff; color: #004494;">Compila per analisi settimanale.</div>
-                </div>
-            </details>
+        <div id="idealWeightSuggestion" style="grid-column: 1 / -1; margin-top: -5px; margin-bottom: 5px; text-align: center; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; display: none; width: fit-content; justify-self: center;">
+            </div>
+
+        <div style="grid-column: 1 / -1; border-bottom: 1px solid #cceeff; padding-bottom: 5px; margin-bottom: -5px; margin-top: 5px;">
+            <span style="font-size:0.75rem; font-weight:700; color:#004494; text-transform:uppercase;">Analisi Corporea (cm)</span>
+        </div>
+        
+        <div>
+            <label>Addome (Ombelico)</label>
+            <input type="number" id="circ_abd" placeholder="cm" onchange="calc()" style="height: 42px;">
+        </div>
+        
+        <div>
+            <label>Coscia (Alta)</label>
+            <input type="number" id="circ_coscia" placeholder="cm" onchange="calc()" style="height: 42px;">
+        </div>
+        
+        <div id="braccio_input_wrapper" style="grid-column: 1 / -1;">
+            <label>Braccio (Bicipite)</label>
+            <input type="number" id="circ_braccio" placeholder="cm" onchange="calc()" style="height: 42px;">
+        </div>
+        
+        <div class="info-box" id="circAnalysis" style="grid-column: 1 / -1; margin-top: 5px; background: white; border-color: #cceeff; color: #004494;">Compila per analisi settimanale.</div>
+    </div>
+</details>
 <div style="grid-column: 1 / -1; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
     <label style="color:#007aff; font-weight:700; margin-bottom: 8px; display:block;">⏱️ Digiuno Intermittente (Opzionale)</label>
     
@@ -275,11 +301,17 @@
     <div id="fastingStatusBox" style="display:none; margin-top:20px; padding:15px; border-radius:16px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease;">
     </div>
     
-    <div class="cumulative-box">
-        <div class="cumul-label">Deficit Totale Risparmiato (Stima)</div>
-        <div class="cumul-value" id="cumulativeDisplay">0 Kg</div>
-        <div class="pred-status" id="predictionStatus">Inserisci Peso/Data Obiettivo per l'Analisi 💡</div>
+    <div class="cumulative-box" style="background: #f4f9ff; border: 1px solid #dbeafe; padding: 20px; border-radius: 18px; text-align: center;">
+    <div style="font-size: 0.8rem; font-weight: 700; color: #004494; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">
+        📅 Data Stimata Traguardo
     </div>
+    <div id="projectedDateDisplay" style="font-size: 1.8rem; font-weight: 800; color: #007aff; margin-bottom: 5px;">
+        -- / --
+    </div>
+    <div class="pred-status" id="predictionStatus" style="font-size: 0.85rem; font-weight: 500; margin-top: 10px; padding: 10px; border-radius: 10px; background: white; border: 1px solid #eee;">
+        Inserisci Peso e Obiettivo nel Profilo ⚙️
+    </div>
+</div>
         
     <div style="text-align: center; margin-top: 15px;">
         <span style="font-size: 0.9rem; color: var(--text-sec); font-weight: 600;">PRECISIONE GIORNALIERA:</span>
@@ -845,6 +877,42 @@
         state.circ_braccio = parseFloat(document.getElementById('circ_braccio').value) || 0;
         localStorage.setItem('profile_v3', JSON.stringify(state));
 
+          // --- SUGGERITORE PESO COMPATTO ---
+        const suggestionBox = document.getElementById('idealWeightSuggestion');
+        const athleteCut = ['lose_athlete_15', 'lose_cons', 'recomp']; 
+        const bulking = ['gain']; 
+        
+        if (suggestionBox) {
+            suggestionBox.style.display = 'block'; // Forza visibilità
+            
+            if (athleteCut.includes(state.goal)) {
+                // ATLETA (Arancione)
+                suggestionBox.innerHTML = "🦵 <b>Atleta:</b> Basati sullo specchio, non sul peso.";
+                suggestionBox.style.background = "#fff5e6"; 
+                suggestionBox.style.color = "#b35900"; 
+                suggestionBox.style.border = "1px solid #ffcc00";
+
+            } else if (bulking.includes(state.goal)) {
+                // MASSA (Verde)
+                suggestionBox.innerHTML = "💪 <b>Massa:</b> Punta a salire di peso pulito.";
+                suggestionBox.style.background = "#d4edda"; 
+                suggestionBox.style.color = "#155724";
+                suggestionBox.style.border = "1px solid #34c759";
+
+            } else {
+                // STANDARD (Blu)
+                const hM = state.h / 100; 
+                if (hM > 0) {
+                    const minW = Math.round(18.5 * hM * hM);
+                    const maxW = Math.round(24.9 * hM * hM);
+                    suggestionBox.innerHTML = `💡 Range Salute: <b>${minW} - ${maxW} kg</b>`;
+                    suggestionBox.style.background = "#eef7ff"; 
+                    suggestionBox.style.color = "#004494";
+                    suggestionBox.style.border = "1px solid #cceeff";
+                }
+            }
+        }
+
         // BMR & TDEE
         let s = (10 * state.w) + (6.25 * state.h) - (5 * state.age);
         BMR = (state.g === 'm') ? s + 5 : s - 161;
@@ -1154,45 +1222,79 @@
         }
     }
 
-        function updatePredictionStatus() {
-        const box = document.getElementById('predictionStatus');
+            function updatePredictionStatus() {
+        const statusBox = document.getElementById('predictionStatus');
+        const dateDisplay = document.getElementById('projectedDateDisplay');
         
-        // Se mancano dati
-        if (!state.targetD || state.targetW <= 0) { 
-            box.innerHTML = "Inserisci Peso/Data Obiettivo per l'Analisi 💡"; 
-            box.style.background="#eef7ff"; 
-            box.style.color="#003a80";
-            box.style.borderColor="#dbeafe";
+        // 1. Verifica Dati Mancanti
+        if (!state.targetW || state.w <= 0 || state.targetW === state.w) { 
+            statusBox.innerHTML = "Inserisci Peso e Obiettivo nel Profilo per calcolare la data ⚙️"; 
+            statusBox.style.color="#666";
+            statusBox.style.background="white";
+            dateDisplay.innerText = "-- / --";
             return; 
         }
-        
-        const daysLeft = Math.ceil((new Date(state.targetD) - new Date()) / (1000 * 86400));
-        
-        // Se la data è passata o oggi
-        if (daysLeft <= 0) { 
-            box.innerHTML = "📅 Data scaduta! Aggiorna il calendario."; 
-            box.style.background="#ffc9c9"; 
-            box.style.color="#b30000";
-            box.style.borderColor="#ff3b30";
-            return; 
+
+        // 2. Calcolo Differenza Peso e Calorie
+        let dailyDiff = 0;
+        let weightDiff = 0;
+        let isWeightLoss = state.w > state.targetW;
+
+        if (isWeightLoss) {
+            dailyDiff = TDEE - TGT_CAL; // Deficit
+            weightDiff = state.w - state.targetW; // Kg da perdere
+        } else {
+            dailyDiff = TGT_CAL - TDEE; // Surplus
+            weightDiff = state.targetW - state.w; // Kg da prendere
         }
-        
-        const needDeficit = ((state.w - state.targetW) * KCAL_PER_KG_FAT) / daysLeft;
-        const currDeficit = TDEE - TGT_CAL;
-        
-        // CASO 1: Il piano va bene
-        if (currDeficit >= needDeficit) { 
-            box.innerHTML = "✅ **Piano Efficace!** Raggiungerai l'obiettivo entro la data."; 
-            box.style.background="#c8f9c8"; 
-            box.style.color="#006400";
-            box.style.borderColor="#34c759";
+
+        // --- CASO 1: PIANO TROPPO LENTO ---
+        if (dailyDiff < 100) {
+            dateDisplay.innerText = "Piano Lento";
+            dateDisplay.style.fontSize = "1.2rem";
+            
+            if (isWeightLoss) {
+                statusBox.innerHTML = `⚠️ <b>Metabolismo Lento?</b><br>Il deficit è minimo. Usa <b>Pharmofit</b> per alzare il dispendio calorico a riposo e velocizzare tutto.`;
+            } else {
+                statusBox.innerHTML = `⚠️ <b>Crescita Lenta.</b><br>Non stai mangiando abbastanza per mettere muscoli.`;
+            }
+            statusBox.style.background="#fff5e6"; statusBox.style.color="#b35900";
+            return;
         }
-        // CASO 2: Il piano è troppo lento
-        else { 
-            box.innerHTML = "⚠️ **Sprint necessario!** Per questa data serve un deficit maggiore. Prova a cambiare piano obiettivo o posticipa la data."; 
-            box.style.background="#fff5e6"; // Sfondo Arancione chiaro
-            box.style.color="#b35900";      // Testo Arancione scuro
-            box.style.borderColor="#ff9500";
+
+        // 3. Calcolo Matematica Data
+        const totalKcalNeeded = weightDiff * 7700;
+        const daysNeeded = Math.ceil(totalKcalNeeded / dailyDiff);
+        
+        const today = new Date();
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + daysNeeded);
+        
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        const dateString = futureDate.toLocaleDateString('it-IT', options);
+        
+        // Mostra Data
+        dateDisplay.innerText = dateString;
+        dateDisplay.style.fontSize = "1.6rem";
+
+        // 4. CONFRONTO E CONSIGLI PRODOTTI
+        if (state.targetD) {
+            const userTargetDate = new Date(state.targetD);
+            userTargetDate.setHours(0,0,0,0);
+            futureDate.setHours(0,0,0,0);
+
+            if (futureDate <= userTargetDate) {
+                // --- CASO 2: IN ANTICIPO (Tutto bene) ---
+                statusBox.innerHTML = `✅ <b>Ottimo! Arriverai in tempo.</b><br>Dimagrendo velocemente, la pelle potrebbe cedere. Usa <b>Pharmofiller</b> per mantenerla elastica e soda.`;
+                statusBox.style.background="#d4edda"; statusBox.style.color="#155724";
+            } else {
+                // --- CASO 3: IN RITARDO (Panico -> Vendita) ---
+                statusBox.innerHTML = `⚠️ <b>Sei in ritardo sulla tabella!</b><br>Arriverai il ${dateString} invece che alla tua scadenza.<br><br>🚀 <b>Strategia Recupero:</b><br>Combina <b>Pharmofit</b> (Brucia) + <b>Pharmodren</b> (Sgonfia) per accorciare i tempi.`;
+                statusBox.style.background="#fff3cd"; statusBox.style.color="#856404";
+            }
+        } else {
+            statusBox.innerHTML = "💡 Imposta una 'Data Obiettivo' nel profilo per vedere se sei in tempo.";
+            statusBox.style.background="#eef7ff"; statusBox.style.color="#004494";
         }
     }
 
