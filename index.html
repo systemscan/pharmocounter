@@ -235,6 +235,26 @@
                     <div class="info-box" id="circAnalysis" style="grid-column: 1 / -1; margin-top: 5px; background: white; border-color: #cceeff; color: #004494;">Compila per analisi settimanale.</div>
                 </div>
             </details>
+<div style="grid-column: 1 / -1; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+    <label style="color:#007aff; font-weight:700; margin-bottom: 8px; display:block;">⏱️ Digiuno Intermittente (Opzionale)</label>
+    
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+        
+        <select id="fastingMode" onchange="updateFastingUI()" 
+            style="width:100%; height:50px; border:1px solid #d1d1d6; border-radius:12px; background:#f9f9fb; font-size:0.95rem; padding: 0 10px; margin:0; box-sizing: border-box;">
+            <option value="none">Nessuno (Libero)</option>
+            <option value="16">16:8 (Classico)</option>
+            <option value="20">20:4 (Warrior)</option>
+            <option value="23">OMAD (Un pasto)</option>
+        </select>
+        
+        <input type="time" id="fastingStart" value="13:00" onchange="updateFastingUI()" 
+            style="width:100%; height:50px; border:1px solid #d1d1d6; border-radius:12px; background:#f9f9fb; font-size:1.1rem; text-align:center; padding:0; margin:0; box-sizing: border-box;">
+    </div>
+
+    <div id="fastingSmallStatus" style="margin-top:10px; font-size:0.75rem; font-weight:700; text-align:center; padding:8px; border-radius:6px; display:none;">
+    </div>
+</div>
 
             <div class="info-box" id="scientificData">Calcolo in corso...</div>
         </div>
@@ -251,6 +271,8 @@
             <div class="track" style="height: 26px; border-radius: 13px;"><div class="fill" id="calBar" style="border-radius: 13px;"></div></div>
         </div>
         <div class="status-text" id="statusText">...</div>
+    </div>
+    <div id="fastingStatusBox" style="display:none; margin-top:20px; padding:15px; border-radius:16px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease;">
     </div>
     
     <div class="cumulative-box">
@@ -554,7 +576,8 @@
         } else {
              localStorage.removeItem('active_streak_code');
         }
-                // --- LOGICA AVANZATA ACQUA (Reset Fallimento & Riavvio Ciclo) ---
+        
+        // --- LOGICA AVANZATA ACQUA (Reset Fallimento & Riavvio Ciclo) ---
         let wStreak = parseInt(localStorage.getItem('water_streak_days')) || 0;
         let lastWin = localStorage.getItem('last_water_win_date');
         let yest = new Date(now); yest.setDate(yest.getDate() - 1);
@@ -573,6 +596,7 @@
             localStorage.removeItem('water_reward_claimed'); // Resetta il premio così puoi rivincerlo
             localStorage.removeItem('water_challenge_code_seen');
         }
+
 
         // --- 3. Reset Dati di Giornata ---
         // 3a. Salvataggio Misure Circonferenze (Salva i dati di ieri)
@@ -701,6 +725,109 @@
             alert("Compila i dati e la grammatura.");
         }
     }
+
+        // --- GESTIONE DIGIUNO INTERMITTENTE (AGGIORNATA) ---
+    function updateFastingUI() {
+        const mode = document.getElementById('fastingMode').value;
+        const startInput = document.getElementById('fastingStart').value;
+        
+        // Elementi da aggiornare
+        const mainBox = document.getElementById('fastingStatusBox');
+        const smallBox = document.getElementById('fastingSmallStatus');
+        
+        // Salva preferenze
+        localStorage.setItem('fasting_mode', mode);
+        localStorage.setItem('fasting_start', startInput);
+
+        if (mode === 'none') {
+            if(mainBox) mainBox.style.display = 'none';
+            if(smallBox) smallBox.style.display = 'none';
+            return;
+        }
+
+        // Calcoli Orari
+        const now = new Date();
+        const nowMins = (now.getHours() * 60) + now.getMinutes();
+        const [startH, startM] = startInput.split(':').map(Number);
+        const startMins = (startH * 60) + startM;
+        
+        // Calcola durata finestra cibo
+        const eatingWindow = (24 - parseInt(mode)); 
+        const endMins = startMins + (eatingWindow * 60);
+
+        // Verifica finestra temporale
+        let isEating = false;
+        if (endMins < 1440) { 
+            if (nowMins >= startMins && nowMins < endMins) isEating = true;
+        } else { 
+            const realEnd = endMins - 1440;
+            if (nowMins >= startMins || nowMins < realEnd) isEating = true;
+        }
+
+        // Orario di fine
+        let endH = Math.floor(endMins / 60) % 24;
+        let endM = endMins % 60;
+        let endTimeStr = `${endH.toString().padStart(2,'0')}:${endM.toString().padStart(2,'0')}`;
+
+        // Mostra i box
+        if(mainBox) mainBox.style.display = 'block';
+        if(smallBox) smallBox.style.display = 'block';
+        
+        let timeLabel = "";
+        if (!isEating) {
+            let minsToWait = (startMins - nowMins);
+            if (minsToWait < 0) minsToWait += 1440;
+            let hLeft = Math.floor(minsToWait/60);
+            let mLeft = minsToWait % 60;
+            timeLabel = `Prossimo pasto tra: <b>${hLeft}h ${mLeft}m</b>`;
+        }
+
+        if (isEating) {
+            // --- FASE VERDE (CIBO) ---
+            smallBox.style.background = "#d4edda"; smallBox.style.color = "#155724";
+            smallBox.innerHTML = `🍽️ ORA: PUOI MANGIARE (fino alle ${endTimeStr})`;
+
+            if(mainBox) {
+                mainBox.style.background = "linear-gradient(135deg, #e6fffa 0%, #e8f5e9 100%)";
+                mainBox.style.border = "2px solid #34c759";
+                mainBox.style.color = "#006400";
+                mainBox.innerHTML = `
+                    <div style="font-size:1.2rem; font-weight:800; margin-bottom:5px;">🍽️ PUOI MANGIARE</div>
+                    <div style="font-size:0.85rem; margin-bottom:10px;">La finestra chiude alle <b>${endTimeStr}</b></div>
+                    <div style="background:white; padding:10px; border-radius:10px; border-left:4px solid #34c759; text-align:left; font-size:0.85rem; line-height:1.4; color:#333;">
+                        <b>🚀 Controllo Fame & Metabolismo:</b><br>
+                        Prima di iniziare a mangiare, assumi <b>Pharmofit</b>.<br>
+                        <span style="color:#e65100; font-weight:700;">Perché?</span> L'Arancio Amaro aiuta a controllare l'appetito e accende subito il consumo calorico.
+                    </div>`;
+            }
+        } else {
+            // --- FASE ROSSA (DIGIUNO) ---
+            smallBox.style.background = "#f8d7da"; smallBox.style.color = "#721c24";
+            smallBox.innerHTML = `⛔ ORA: STOP CIBO`;
+
+            if(mainBox) {
+                mainBox.style.background = "linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%)";
+                mainBox.style.border = "2px solid #ff3b30";
+                mainBox.style.color = "#b30000";
+                mainBox.innerHTML = `
+                    <div style="font-size:1.2rem; font-weight:800; margin-bottom:5px;">⛔ STOP CIBO (Fasting)</div>
+                    <div style="font-size:0.85rem; margin-bottom:10px;">${timeLabel}</div>
+                    
+                    <div style="background:white; padding:10px; border-radius:10px; border-left:4px solid #ff3b30; text-align:left; font-size:0.85rem; line-height:1.4; color:#333;">
+                        
+                        <div style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #ffcccc;">
+                            <div style="margin-bottom:4px;"><b style="color:#34c759;">✅ PUOI BERE:</b> Acqua, caffè nero (no zucchero), tè, tisane amare.</div>
+                            <div><b style="color:#ff3b30;">❌ NON PUOI:</b> Cibo solido, bevande zuccherate, latte, cappuccini o succhi.</div>
+                        </div>
+
+                        <b>💧 Drenaggio Profondo:</b><br>
+                        Mentre il corpo non digerisce, i reni lavorano al massimo.<br>
+                        <span style="color:#007aff; font-weight:700;">Consiglio:</span> Usa <b>Pharmodren</b> ora. Non rompe il digiuno e massimizza l'eliminazione dei liquidi.
+                    </div>`;
+            }
+        }
+    }
+
 
     // --- LOGICA PRINCIPALE (CALC) ---
     function calc() {
@@ -1244,13 +1371,14 @@ ${timerDisplay}
     const finalTotals = render(); 
     checkTimeAdvice(finalTotals.curP); 
     appReady = true; 
+    
+        // Avvio Digiuno
+    document.getElementById('fastingMode').value = localStorage.getItem('fasting_mode') || 'none';
+    document.getElementById('fastingStart').value = localStorage.getItem('fasting_start') || '13:00';
+    updateFastingUI(); 
 
 </script>
 </body>
 </html>
-
-
-
-
 
 
