@@ -636,11 +636,16 @@
         if (state.circ_coscia > 0) localStorage.setItem('last_week_coscia', state.circ_coscia);
         if (state.circ_braccio > 0) localStorage.setItem('last_week_braccio', state.circ_braccio);
         
-        // 3b. Reset Cibi, Acqua e Data
+                // 3b. Reset Cibi, Acqua e Data
+        // 1. Pulisce il Database
         localStorage.setItem('foods_v3', JSON.stringify([])); 
         localStorage.setItem('water_count', 0);
         localStorage.setItem('water_last_time', 0);
         localStorage.setItem('app_date', todayStr);
+
+        // 2. AGGIUNTO: Pulisce le Variabili in Memoria (Così la grafica si aggiorna)
+        foods = []; 
+        waterCount = 0; 
     }
 
 
@@ -1482,5 +1487,6 @@ ${timerDisplay}
 </script>
 </body>
 </html>
+
 
 
