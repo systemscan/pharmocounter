@@ -286,17 +286,34 @@
         </div>
     </details>
 
-    <div>
+               <div>
         <div class="dash-header">
             <div class="big-val" id="remCal">0</div>
             <div class="sub-val">Kcal Rimanenti (Target: <span id="targetDisplay">0</span>)</div>
         </div>
+        
         <div style="position: relative; margin-top: 30px;">
             <div id="bmrMarker" class="bmr-line"></div>
             <div id="bmrTag" class="bmr-tag">Basale</div>
-            <div class="track" style="height: 26px; border-radius: 13px;"><div class="fill" id="calBar" style="border-radius: 13px;"></div></div>
+            <div class="track" style="height: 26px; border-radius: 13px;">
+                <div class="fill" id="calBar" style="border-radius: 13px;"></div>
+            </div>
         </div>
-        <div class="status-text" id="statusText">...</div>
+
+        <div class="status-text" id="statusText" style="margin-top: 10px; margin-bottom: 15px;">...</div>
+
+        <div id="proteinDashboardArea" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">
+                <span style="color: #666;">Muscoli (Min: <span id="protMinLabel">0</span>g)</span>
+                <span id="protDashboardTxt" style="color: #ff9500;">0g / 0g</span>
+            </div>
+            <div style="position: relative;">
+                <div id="protMinMarker" style="position: absolute; top: 0; bottom: 0; width: 2px; background: #003a80; z-index: 5; border-right: 1px dashed rgba(255,255,255,0.6);"></div>
+                <div class="track" style="height: 8px; border-radius: 4px; background: #e5e5ea;">
+                    <div class="fill" id="protDashboardBar" style="height: 100%; width: 0%; border-radius: 4px; transition: all 0.5s ease;"></div>
+                </div>
+            </div>
+        </div>
     </div>
     <div id="fastingStatusBox" style="display:none; margin-top:20px; padding:15px; border-radius:16px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease;">
     </div>
@@ -957,12 +974,19 @@
             else { c_r=0.4; p_r=0.3; f_r=0.3; gTxt="Atleta Cut Conservativo (-10%)"; reqHighProt=true; }
         } else if (state.goal === 'recomp') {
             c_r=0.35; p_r=0.35; f_r=0.3; gTxt="Ricomposizione Corporea"; sTit="Protocollo Recomp"; sDes=stackRecomp; reqHighProt=true;
-        } else {
+                } else {
             // Defaults for Detox, Beauty, Maintain, Gain
             c_r=0.5; p_r=0.2; f_r=0.3; 
             if(state.goal==='detox') { gTxt="Detox (-5%)"; sTit="Protocollo Detox"; sDes=stackDetox; }
             else if(state.goal==='beauty') { gTxt="Beauty (Mantenimento)"; sTit="Protocollo Glow"; sDes=stackBeauty; c_r=0.45; p_r=0.25; }
-            else if(state.goal==='gain') { gTxt="Surplus (+10%)"; sTit="Protocollo Struttura"; sDes=stackGain; }
+            else if(state.goal==='gain') { 
+                gTxt="Surplus (+10%)"; 
+                sTit="Protocollo Struttura"; 
+                sDes=stackGain; 
+                c_r=0.45; // Abbassiamo leggermente i carboidrati (da 0.5 a 0.45)
+                p_r=0.30; // Alziamo le proteine (da 0.2 a 0.3) per garantire il superamento del minimo
+                reqHighProt = true; 
+            }
             else { gTxt="Mantenimento"; sTit="Protocollo Definizione"; sDes=stackGain; }
         }
 
@@ -970,8 +994,16 @@
         PT_MIN_G = reqHighProt ? Math.round(state.w * PT_MIN_MULTIPLIER) : 0;
         localStorage.setItem('pt_min_g', PT_MIN_G);
 
-        // Aggiornamento UI Calcoli
-        TGT_C = Math.round((TGT_CAL * c_r)/4); TGT_P = Math.round((TGT_CAL * p_r)/4); TGT_F = Math.round((TGT_CAL * f_r)/9);
+                // Aggiornamento UI Calcoli
+        TGT_C = Math.round((TGT_CAL * c_r)/4); 
+        TGT_P = Math.round((TGT_CAL * p_r)/4); 
+        TGT_F = Math.round((TGT_CAL * f_r)/9);
+
+        // --- PARACADUTE: Il Target non può mai essere inferiore al Minimo ---
+        if (reqHighProt && TGT_P < PT_MIN_G) {
+            TGT_P = PT_MIN_G + 10; // Forza il target a essere 10g sopra il minimo
+        }
+
         document.getElementById('shopTitle').innerText = sTit; document.getElementById('shopDesc').innerHTML = sDes;
         document.getElementById('targetDisplay').innerText = TGT_CAL;
         document.getElementById('scientificData').innerHTML = `Metabolismo Basale (BMR): <b>${Math.round(BMR)}</b> kcal<br>Fabbisogno Totale (TDEE): <b>${TDEE}</b> kcal<br>Piano: <b>${gTxt}</b>`;
@@ -991,6 +1023,23 @@
         render();
         localStorage.setItem('last_day_target', TGT_CAL);
         localStorage.setItem('last_day_bmr', BMR); // <--- NUOVA RIGA
+        
+        // --- LOGICA VISIBILITÀ BARRA PROTEINE DASHBOARD ---
+const protDashArea = document.getElementById('proteinDashboardArea');
+const highProtGoals = ['lose_athlete_15', 'lose_cons', 'recomp', 'gain'];
+
+if (highProtGoals.includes(state.goal)) {
+    protDashArea.style.display = 'block';
+    document.getElementById('protMinLabel').innerText = PT_MIN_G;
+    
+    // Posiziona il marker del minimo rispetto al target totale proteico
+    // Se il target è 150g e il minimo è 120g, il segno sarà all'80% della barra
+    let markerPos = Math.min((PT_MIN_G / TGT_P) * 100, 95);
+    document.getElementById('protMinMarker').style.left = markerPos + "%";
+} else {
+    protDashArea.style.display = 'none';
+}
+
     }
 
     // --- RENDER UI CORRETTO ---
@@ -1120,12 +1169,36 @@
         const protAlert = document.getElementById('protAlert');
         if(protAlert) protAlert.innerHTML = alertHTML;
 
+                // ... (resto del codice sopra invariato)
+        
         const cumDisplay = document.getElementById('cumulativeDisplay');
         if(cumDisplay) cumDisplay.innerText = (cumulativeDeficit / KCAL_PER_KG_FAT).toFixed(1) + " Kg";
 
-        return { curP: curP, curCal: curCal }; 
-    }
+                // --- AGGIORNAMENTO DINAMICO BARRA PROTEINE DASHBOARD ---
+        const highProtGoalsRender = ['lose_athlete_15', 'lose_cons', 'recomp', 'gain'];
+        if (highProtGoalsRender.includes(state.goal)) {
+            const pDashBar = document.getElementById('protDashboardBar');
+            const pDashTxt = document.getElementById('protDashboardTxt');
+            
+            // Usiamo PT_MIN_G come riferimento per il colore e TGT_P per il limite massimo
+            let pPct = TGT_P > 0 ? Math.min((curP / TGT_P) * 100, 100) : 0;
+            if(pDashBar) pDashBar.style.width = pPct + "%";
+            if(pDashTxt) pDashTxt.innerText = `${curP}g / ${TGT_P}g`;
 
+            if (curP >= PT_MIN_G) {
+                // ZONA BLU (Sicura)
+                pDashBar.style.backgroundColor = "#003a80"; 
+                pDashTxt.style.color = "#003a80";
+            } else {
+                // ZONA GIALLA (Attenzione) - Forziamo il colore esadecimale
+                pDashBar.style.backgroundColor = "#ff9500"; 
+                pDashTxt.style.color = "#ff9500";
+            }
+        }
+
+
+        return { curP: curP, curCal: curCal }; // Questa deve essere l'ULTIMA riga della funzione
+    }
 
 
     function setBar(id, val, max) {
@@ -1487,8 +1560,3 @@ ${timerDisplay}
 </script>
 </body>
 </html>
-
-
-
-
-
