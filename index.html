@@ -129,6 +129,35 @@
 </head>
 <body>
 
+<div id="authGate" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:20000; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; text-align:center;">
+    <div style="max-width:360px; width:100%; padding:30px; border-radius:28px; background:#f4f9ff; border:1px solid #dbeafe; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+        <h2 style="margin:0 0 10px 0; font-weight:800; color:#003a80;">Attivazione Gratuita</h2>
+        <p style="font-size:0.9rem; color:#555; line-height:1.5; margin-bottom:20px;">
+            Inviaci la tua <b>email</b> su WhatsApp per ricevere il codice di sblocco e iscriverti alla nostra newsletter esclusiva.
+        </p>
+        
+        <a href="https://wa.me/393501407554?text=Ciao%21%20Vorrei%20il%20codice%20per%20Pharmocounter%2E%20La%20mia%20mail%20%C3%A8%3A%20%0A%0AFornendo%20questo%20indirizzo%2C%20accetto%20di%20iscrivermi%20alla%20newsletter%20di%20pharmo%2Eit%20e%20ricevere%20consigli%20e%20promozioni%2E" 
+           target="_blank" 
+           style="background:#25D366; color:#fff; text-decoration:none; display:block; padding:16px; border-radius:14px; font-weight:700; margin-bottom:20px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);">
+           💬 Richiedi Codice e Iscriviti
+        </a>
+
+        <div style="margin:20px 0; height:1px; background:#dbeafe; position:relative;">
+            <span style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:#f4f9ff; padding:0 10px; font-size:0.7rem; color:#999; font-weight:700;">INSERISCI IL CODICE RICEVUTO</span>
+        </div>
+
+        <input type="text" id="unlockCodeInput" placeholder="Esempio: PHARMO2026" 
+               style="width:100%; height:50px; border-radius:12px; border:1.5px solid #ccc; margin-bottom:10px; text-align:center; font-size:1.1rem; font-weight:800; letter-spacing:1px; background: #fff;">
+        
+        <button onclick="verifyUnlockCode()" 
+                style="background:#1c1c1e; color:#fff; border:none; width:100%; padding:15px; border-radius:12px; font-weight:700; cursor:pointer; transition: transform 0.1s;"
+                onactive="this.style.transform='scale(0.98)'">
+                Sblocca Pharmocounter
+        </button>
+    </div>
+</div>
+
 <div id="smartToast" class="smart-toast"><span class="toast-icon">💡</span><span id="toastMsg">...</span><a href="https://www.pharmo.it" target="_blank" class="toast-btn">Vedi</a></div>
 
 <div id="disclaimerModal" class="modal-overlay">
@@ -422,6 +451,44 @@
     </div>
 
 <script>
+
+const MASTER_UNLOCK_CODE = "PHARMO2026"; // Cambia questo se vuoi un altro codice
+
+function handleAuth() {
+    const isUnlocked = localStorage.getItem('app_unlocked_v1');
+    // Verifichiamo se esistono DATI (peso o cibi) per identificare un vecchio utente
+    const hasProfile = localStorage.getItem('profile_v3');
+    const hasFoods = localStorage.getItem('foods_v3');
+    const gate = document.getElementById('authGate');
+
+    if (isUnlocked === 'true') {
+        // Già sbloccato, non mostrare nulla
+        gate.style.display = 'none';
+    } else if (hasProfile || (hasFoods && hasFoods !== '[]')) {
+        // VECCHIO UTENTE RILEVATO: Sblocca silenziosamente per non disturbarlo
+        localStorage.setItem('app_unlocked_v1', 'true');
+        gate.style.display = 'none';
+    } else {
+        // NUOVO UTENTE: Mostra il blocco
+        gate.style.display = 'flex';
+    }
+}
+
+function verifyUnlockCode() {
+    const code = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
+    if (code === MASTER_UNLOCK_CODE) {
+        localStorage.setItem('app_unlocked_v1', 'true');
+        document.getElementById('authGate').style.display = 'none';
+        showToast("✅ App Attivata!");
+    } else {
+        alert("Codice errato. Richiedilo su WhatsApp se non lo hai.");
+    }
+}
+
+// Avvia il controllo subito
+handleAuth();
+
+
     // --- COSTANTI & INIT ---
     const d = new Date();
     document.getElementById('dateText').innerText = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
