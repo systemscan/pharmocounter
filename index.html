@@ -153,15 +153,30 @@
     background: #007aff; color: #fff; border: none; width: 100%; padding: 18px;
     border-radius: 15px; font-weight: 700; font-size: 1rem; cursor: pointer;
 }
+/* Pulsante di chiusura (X) */
+.close-auth {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 1.8rem;
+    color: #aeaeb2;
+    cursor: pointer;
+    line-height: 1;
+    display: none; /* Nascosto di default, lo mostriamo via JS */
+}
+.close-auth:hover { color: #1c1c1e; }
 
     </style>
 </head>
 <body>
 
 <div id="authGate">
-    <div class="auth-box">
+    <div class="auth-box" style="position: relative;">
+        <span id="closeAuthBtn" class="close-auth" onclick="document.getElementById('authGate').style.display='none'">&times;</span>
+
         <div style="font-size: 3.5rem; margin-bottom: 10px;">🍎</div>
         <h2 style="margin:0 0 10px 0; font-weight:800; color:#1c1c1e; font-size: 1.6rem;">Attiva Pharmocounter</h2>
+        
         <p style="font-size:0.95rem; color:#636366; line-height:1.5; margin-bottom:25px;">
             Unisciti alla community. Inviaci la tua <b>email</b> su WhatsApp per sbloccare l'app e iscriverti alla nostra newsletter e iniziare a tracciare in modo intelligente quello che mangi.
         </p>
@@ -179,6 +194,7 @@
         <button class="btn-unlock" onclick="verifyUnlockCode()">Sblocca Ora</button>
     </div>
 </div>
+
 
 <div id="smartToast" class="smart-toast"><span class="toast-icon">💡</span><span id="toastMsg">...</span><a href="https://www.pharmo.it" target="_blank" class="toast-btn">Vedi</a></div>
 
@@ -550,29 +566,50 @@ function verifyUnlockCode() {
 // Avvia il controllo
 handleAuth();
 
-
-
 const MASTER_UNLOCK_CODE = "PHARMOWIN26"; // Cambia questo se vuoi un altro codice
 
 function handleAuth() {
     const isUnlocked = localStorage.getItem('app_unlocked_v1');
-    // Verifichiamo se esistono DATI (peso o cibi) per identificare un vecchio utente
-    const hasProfile = localStorage.getItem('profile_v3');
-    const hasFoods = localStorage.getItem('foods_v3');
+    const lastUnlock = localStorage.getItem('last_unlock_timestamp');
     const gate = document.getElementById('authGate');
+    const closeBtn = document.getElementById('closeAuthBtn');
+    
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000; 
+    const now = Date.now();
 
-    if (isUnlocked === 'true') {
-        // Già sbloccato, non mostrare nulla
-        gate.style.display = 'none';
-    } else if (hasProfile || (hasFoods && hasFoods !== '[]')) {
-        // VECCHIO UTENTE RILEVATO: Sblocca silenziosamente per non disturbarlo
+    // Protezione per vecchi utenti
+    if (!lastUnlock && (localStorage.getItem('profile_v3') || (localStorage.getItem('foods_v3') && localStorage.getItem('foods_v3') !== '[]'))) {
         localStorage.setItem('app_unlocked_v1', 'true');
-        gate.style.display = 'none';
+        localStorage.setItem('last_unlock_timestamp', now);
+        if(gate) gate.style.display = 'none';
+        return;
+    }
+
+    if (isUnlocked === 'true' && lastUnlock) {
+        const timeLeft = thirtyDays - (now - lastUnlock);
+
+        if (timeLeft <= 0) {
+            // SCADUTO: Blocco e NIENTE X
+            localStorage.setItem('app_unlocked_v1', 'false');
+            if(gate) {
+                gate.style.display = 'flex';
+                if(closeBtn) closeBtn.style.display = 'none';
+                gate.querySelector('p').innerHTML = "<b>Sessione mensile scaduta!</b><br>Richiedi la nuova chiave su WhatsApp per continuare.";
+            }
+        } else {
+            // ANCORA VALIDO: Se apre il pannello, MOSTRA la X
+            if(gate) gate.style.display = 'none';
+            if(closeBtn) closeBtn.style.display = 'block';
+        }
     } else {
-        // NUOVO UTENTE: Mostra il blocco
-        gate.style.display = 'flex';
+        // NUOVO UTENTE: NIENTE X
+        if(gate) {
+            gate.style.display = 'flex';
+            if(closeBtn) closeBtn.style.display = 'none';
+        }
     }
 }
+
 
 function verifyUnlockCode() {
     const code = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
