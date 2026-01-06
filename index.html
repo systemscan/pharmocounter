@@ -375,7 +375,13 @@
             <div class="big-val" id="remCal">0</div>
             <div class="sub-val">Kcal Rimanenti (Target: <span id="targetDisplay">0</span>)</div>
         </div>
-        
+<div style="text-align:center; margin-top: 5px; margin-bottom: 20px;">
+    <button onclick="useBankCalories()" 
+            style="background: rgba(255, 149, 0, 0.05); border: 1px solid rgba(255, 149, 0, 0.4); color: #ff9500; padding: 4px 12px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+        <span>💰</span> SALVADANAIO: <span id="bankDisplay">0</span> kcal
+    </button>
+</div>
+
         <div style="position: relative; margin-top: 30px;">
             <div id="bmrMarker" class="bmr-line"></div>
             <div id="bmrTag" class="bmr-tag">Basale</div>
@@ -521,21 +527,42 @@ function handleAuth() {
     
     const thirtyDays = 30 * 24 * 60 * 60 * 1000; 
     const warningDays = 3 * 24 * 60 * 60 * 1000; 
+    const trialPeriod = 3 * 24 * 60 * 60 * 1000; 
     const now = Date.now();
 
-    // Protezione Vecchi Utenti
-    if (!lastUnlock && (localStorage.getItem('profile_v3') || (localStorage.getItem('foods_v3') && localStorage.getItem('foods_v3') !== '[]'))) {
-        localStorage.setItem('app_unlocked_v1', 'true');
-        localStorage.setItem('last_unlock_timestamp', now);
-        if(gate) gate.style.display = 'none';
-        return;
+        // --- 1. LOGICA TRIAL 3 GIORNI ---
+    if (isUnlocked !== 'true') {
+        let firstVisit = localStorage.getItem('first_visit_ever');
+        
+        if (!firstVisit) {
+            localStorage.setItem('first_visit_ever', now.toString());
+            if(gate) gate.style.display = 'none'; 
+            if(renewalLink) renewalLink.innerText = `🔑 Accesso Attivo: 3 gg rimanenti`;
+            
+            // AGGIUNGI QUESTA RIGA: Forza la comparsa della X al primissimo avvio
+            if(closeBtn) closeBtn.style.display = 'block'; 
+            
+            return; 
+        }
+
+        const timePassed = now - parseFloat(firstVisit);
+        if (timePassed < trialPeriod) {
+            if(gate) gate.style.display = 'none';
+            const daysLeftTrial = Math.ceil((trialPeriod - timePassed) / (24 * 60 * 60 * 1000));
+            if(renewalLink) renewalLink.innerText = `🔑 Accesso Attivo: ${daysLeftTrial} gg rimanenti`;
+            
+            // AGGIUNGI QUESTA RIGA: Forza la comparsa della X durante i 3 giorni
+            if(closeBtn) closeBtn.style.display = 'block'; 
+            
+            return;
+        }
     }
 
+    // --- 2. LOGICA STANDARD (DOPO SBLOCCO O DOPO I 3 GIORNI) ---
     if (isUnlocked === 'true' && lastUnlock) {
         const timeLeft = thirtyDays - (now - lastUnlock);
         const daysLeft = Math.ceil(timeLeft / (24 * 60 * 60 * 1000));
 
-        // AGGIORNAMENTO DINAMICO LINK IN FONDO
         if (renewalLink) {
             if (daysLeft > 3) {
                 renewalLink.innerText = `🔑 Accesso Attivo: ${daysLeft} gg rimanenti`;
@@ -567,6 +594,7 @@ function handleAuth() {
             }
         }
     } else {
+        // Se la prova è finita (più di 3gg) e NON hai inserito il codice
         if(gate) {
             gate.style.display = 'flex';
             if(closeBtn) closeBtn.style.display = 'none';
@@ -575,16 +603,59 @@ function handleAuth() {
     }
 }
 
+
+
 function verifyUnlockCode() {
     const entered = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
     if (entered === CHIAVE_ACCESSO_MENSILE) {
         localStorage.setItem('app_unlocked_v1', 'true');
         localStorage.setItem('last_unlock_timestamp', Date.now());
+        localStorage.removeItem('first_visit_ever'); // Pulizia trial
         document.getElementById('authGate').style.display = 'none';
         showToast("✅ Accesso attivato!");
         handleAuth(); 
     } else {
         alert("Chiave errata. Richiedila su WhatsApp!");
+    }
+}
+
+// --- NUOVE LOGICHE: SALVADANAIO E CRONONUTRIZIONE ---
+
+function getBankBalance() {
+    return parseFloat(localStorage.getItem('calorie_bank')) || 0;
+}
+
+function useBankCalories() {
+    let currentBank = getBankBalance();
+    if (currentBank <= 0) {
+        alert("Il tuo salvadanaio è vuoto! Risparmia calorie nei prossimi giorni per accumularle.");
+        return;
+    }
+    
+    let amountToUse = prompt(`Hai ${Math.round(currentBank)} kcal nel salvadanaio. Quante vuoi usarne oggi?`, "200");
+    amountToUse = parseInt(amountToUse);
+
+    if (amountToUse > 0 && amountToUse <= currentBank) {
+        // Aggiunge le calorie al target di oggi nel localStorage temporaneo
+        let extra = parseFloat(localStorage.getItem('extra_today')) || 0;
+        localStorage.setItem('extra_today', extra + amountToUse);
+        localStorage.setItem('calorie_bank', currentBank - amountToUse);
+        showToast(`✅ Prelevate ${amountToUse} kcal! Il tuo target odierno è aumentato.`);
+        location.reload(); // Ricarica per aggiornare i calcoli
+    } else {
+        alert("Quantità non valida.");
+    }
+}
+
+function checkCrononutrizione(calorie, carbo) {
+    const ora = new Date().getHours();
+    if (ora >= 6 && ora <= 10) {
+        showToast("🔥 Mattina: Attiva il metabolismo ora con Pharmofit!");
+    } else if (ora >= 13 && ora <= 15) {
+        showToast("💧 Dopo pranzo: Pharmodren ti aiuta a sgonfiare i liquidi.");
+    } else if (ora >= 20) {
+        if (carbo > 30) showToast("💊 Cena: Pharmolain aiuta a digerire e previene il gonfiore!");
+        else showToast("🌙 Pharmofit la sera aiuta il metabolismo notturno.");
     }
 }
 
@@ -700,15 +771,30 @@ function verifyUnlockCode() {
     const now = new Date(); now.setHours(now.getHours() - 4);
     const todayStr = now.toDateString();
     
-    if (localStorage.getItem('app_date') !== todayStr) {
+        if (localStorage.getItem('app_date') !== todayStr) {
         let lastTarget = parseFloat(localStorage.getItem('last_day_target')) || 0;
         let lastConsumed = parseFloat(localStorage.getItem('last_day_total_consumed')) || 0;
         let lastBMR = parseFloat(localStorage.getItem('last_day_bmr')) || 0; 
         
-        // Logica BMR per la Streak (SUCCESS = RAGGIUNTO BMR, ignora sforamento)
+        // --- 💰 NOVITÀ: LOGICA SALVADANAIO (Accumulo) ---
+        let saving = lastTarget - lastConsumed;
+        if (saving > 0) {
+            let currentBank = parseFloat(localStorage.getItem('calorie_bank')) || 0;
+            localStorage.setItem('calorie_bank', currentBank + saving);
+        }
+
+        // --- 📊 NOVITÀ: REPORT DOMENICA & RESET LUNEDÌ ---
+        let dayOfWeek = new Date().getDay(); 
+        if (dayOfWeek === 0) { // Domenica
+            setTimeout(() => {
+                alert("📊 REPORT DOMENICALE PHARMO: \nQuesta settimana il tuo salvadanaio ha accumulato calorie preziose. Se i risultati tardano, ricorda che Pharmofit accelera il tuo deficit!");
+            }, 1000);
+        } else if (dayOfWeek === 1) { // Lunedì
+            localStorage.setItem('calorie_bank', 0); // Reset settimanale del bank
+        }
+
+        // --- 1. Aggiornamento Deficit & Platino Check (Originale) ---
         const daySuccess = lastConsumed >= lastBMR;
-        
-        // --- 1. Aggiornamento Deficit & Platino Check ---
         if (lastTarget > 0) {
             cumulativeDeficit += (lastTarget - lastConsumed);
             localStorage.setItem('cumulative_deficit', cumulativeDeficit);
@@ -725,34 +811,26 @@ function verifyUnlockCode() {
             localStorage.setItem('claimed_platinum_5', 'true');
         }
 
-        // --- 2. Streak Visiva & Logica Ciclica (NUOVA LOGICA) ---
+        // --- 2. Streak Visiva & Logica Ciclica (Originale) ---
         let lastVisit = localStorage.getItem('last_visit_date');
         let yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
-        
-        // Gestione del contatore scadenza (days_since_30_win)
         let daysSince30Win = parseInt(localStorage.getItem('days_since_30_win')) || 0;
         
         if (lastVisit === yesterday.toDateString() && daySuccess) {
-            // Successo Giornaliero
             streakCount++;
-            
-            // Se la serie era in scadenza, incrementa il contatore di scadenza
             if (daysSince30Win > 0) {
                 daysSince30Win++;
                 localStorage.setItem('days_since_30_win', daysSince30Win);
             }
-            
         } else {
-            // Serie interrotta o mancata visita (reset)
             streakCount = 1; 
-            daysSince30Win = 0; // Se la serie si rompe, il timer di scadenza si annulla
+            daysSince30Win = 0;
             localStorage.removeItem('days_since_30_win');
             localStorage.removeItem('active_streak_code');
         }
         
-        // Reset Ciclico al 4° giorno dopo il 30°
         if (daysSince30Win > 3) {
-            alert("🎉 La sfida Pharmo è ricominciata! La tua serie è stata resettata. Buona fortuna per il prossimo ciclo!");
+            alert("🎉 La sfida Pharmo è ricominciata! La tua serie è stata resettata.");
             streakCount = 1;
             daysSince30Win = 0;
             localStorage.removeItem('days_since_30_win');
@@ -762,74 +840,50 @@ function verifyUnlockCode() {
         localStorage.setItem('streak_days', streakCount);
         localStorage.setItem('last_visit_date', todayStr);
 
-        // *CONTROLLO PREMI & CODICE ATTIVO (NOTIFICA UNICA)*
+        // --- CONTROLLO PREMI (Originale) ---
         let rewardCode = null;
         let claimedKey = null;
-
         if (streakCount === 7 && !localStorage.getItem('claimed_7_days')) {
             rewardCode = 'PHARMO1100'; claimedKey = 'claimed_7_days';
         } else if (streakCount === 14 && !localStorage.getItem('claimed_14_days')) {
             rewardCode = 'PHARMO6598'; claimedKey = 'claimed_14_days';
         } else if (streakCount === 30 && !localStorage.getItem('claimed_30_days')) {
             rewardCode = 'PHARMO8756'; claimedKey = 'claimed_30_days';
-            // Avvia il timer di 3 giorni solo dopo aver sbloccato l'ultimo codice
             localStorage.setItem('days_since_30_win', 1); 
         }
 
         if (rewardCode) {
-            alert(`🎉 Sfida Pharmo Completata! Hai raggiunto ${streakCount} giorni di successo consecutivi. Il tuo codice sconto è: ${rewardCode}`);
+            alert(`🎉 Sfida Pharmo Completata! Codice: ${rewardCode}`);
             localStorage.setItem(claimedKey, 'true');
-            // Salviamo il codice più alto sbloccato per la visualizzazione nella UI
             localStorage.setItem('active_streak_code', rewardCode); 
-        } else if (streakCount >= 30) {
-            // Se siamo al 30° giorno o oltre (fino al reset), manteniamo il codice ORO come attivo
-             localStorage.setItem('active_streak_code', 'PHARMO8756'); 
-        } else if (streakCount >= 14) {
-             localStorage.setItem('active_streak_code', 'PHARMO6598'); 
-        } else if (streakCount >= 7) {
-             localStorage.setItem('active_streak_code', 'PHARMO1100'); 
-        } else {
-             localStorage.removeItem('active_streak_code');
         }
-        
-        // --- LOGICA AVANZATA ACQUA (Reset Fallimento & Riavvio Ciclo) ---
+
+        // --- LOGICA ACQUA (Originale) ---
         let wStreak = parseInt(localStorage.getItem('water_streak_days')) || 0;
         let lastWin = localStorage.getItem('last_water_win_date');
         let yest = new Date(now); yest.setDate(yest.getDate() - 1);
         
-        // CASO 1: Hai saltato ieri? -> Azzera tutto (Fallimento)
         if (lastWin !== yest.toDateString()) {
-            if (wStreak > 0) {
-                localStorage.setItem('water_streak_days', 0);
-                localStorage.removeItem('water_reward_claimed'); // Rimuovi il blocco premio
-                localStorage.removeItem('water_challenge_code_seen');
-            }
-        } 
-        // CASO 2: Hai completato il ciclo (3 giorni)? -> Azzera per ricominciare (Vittoria)
-        else if (wStreak >= 3) {
+            if (wStreak > 0) localStorage.setItem('water_streak_days', 0);
+        } else if (wStreak >= 3) {
             localStorage.setItem('water_streak_days', 0);
-            localStorage.removeItem('water_reward_claimed'); // Resetta il premio così puoi rivincerlo
-            localStorage.removeItem('water_challenge_code_seen');
         }
 
-
-        // --- 3. Reset Dati di Giornata ---
-        // 3a. Salvataggio Misure Circonferenze (Salva i dati di ieri)
+        // --- 3. Reset Dati di Giornata (Originale) ---
         if (state.circ_abd > 0) localStorage.setItem('last_week_abd', state.circ_abd);
         if (state.circ_coscia > 0) localStorage.setItem('last_week_coscia', state.circ_coscia);
         if (state.circ_braccio > 0) localStorage.setItem('last_week_braccio', state.circ_braccio);
-        
-                // 3b. Reset Cibi, Acqua e Data
-        // 1. Pulisce il Database
+
         localStorage.setItem('foods_v3', JSON.stringify([])); 
         localStorage.setItem('water_count', 0);
         localStorage.setItem('water_last_time', 0);
         localStorage.setItem('app_date', todayStr);
 
-        // 2. AGGIUNTO: Pulisce le Variabili in Memoria (Così la grafica si aggiorna)
         foods = []; 
         waterCount = 0; 
+        location.reload();
     }
+
 
 
     // --- FUNZIONI UTILI ---
@@ -847,8 +901,17 @@ function verifyUnlockCode() {
         document.getElementById(id).style.display = 'none'; 
         localStorage.setItem(id === 'rewardModal' ? 'reward_claimed' : 'water_reward_claimed', 'true');
     }
-    function acceptTerms() { document.getElementById('disclaimerModal').style.display = 'none'; localStorage.setItem('terms_accepted_v1', 'true'); document.getElementById('profileDetails').open = true; }
-    // --- GESTIONE DATABASE CIBI PERSONALE ---
+    function acceptTerms() { 
+    document.getElementById('disclaimerModal').style.display = 'none'; 
+    localStorage.setItem('terms_accepted_v1', 'true'); 
+    document.getElementById('profileDetails').open = true;
+    
+    // I toast partono solo dopo l'accettazione
+    const finalTotals = render(); 
+    checkTimeAdvice(finalTotals.curP); 
+}
+
+  // --- GESTIONE DATABASE CIBI PERSONALE ---
     
        // --- GESTIONE CIBI AVANZATA ---
 
@@ -909,42 +972,43 @@ function verifyUnlockCode() {
     }
 
     // 5. CALCOLA E AGGIUNGE AL DIARIO (Sostituisce la vecchia add)
-        function addCalculated() {
-        const n = document.getElementById('inName').value;
-        const k100 = parseFloat(document.getElementById('inCal100').value);
-        const c100 = parseFloat(document.getElementById('inCarb100').value)||0;
-        const p100 = parseFloat(document.getElementById('inProt100').value)||0;
-        const f100 = parseFloat(document.getElementById('inFat100').value)||0;
-        const g = parseFloat(document.getElementById('inGrams').value);
+                function addCalculated() {
+    const n = document.getElementById('inName').value;
+    const k100 = parseFloat(document.getElementById('inCal100').value);
+    const c100 = parseFloat(document.getElementById('inCarb100').value) || 0;
+    const p100 = parseFloat(document.getElementById('inProt100').value) || 0;
+    const f100 = parseFloat(document.getElementById('inFat100').value) || 0;
+    const g = parseFloat(document.getElementById('inGrams').value);
 
-        if(n && !isNaN(k100) && g > 0) {
-            const finalK = Math.round((k100 * g) / 100);
-            const finalC = Math.round((c100 * g) / 100);
-            const finalP = Math.round((p100 * g) / 100);
-            const finalF = Math.round((f100 * g) / 100);
+    if (n && !isNaN(k100) && g > 0) {
+        const finalK = Math.round((k100 * g) / 100);
+        const finalC = Math.round((c100 * g) / 100);
+        const finalP = Math.round((p100 * g) / 100);
+        const finalF = Math.round((f100 * g) / 100);
 
-            foods.push({ n: `${n} (${g}g)`, k: finalK, c: finalC, p: finalP, f: finalF });
-            
-            // --- QUESTA È LA RIGA CHE MANCAVA PER SALVARE ---
-            localStorage.setItem('foods_v3', JSON.stringify(foods)); 
-            // ------------------------------------------------
+        foods.push({ n: `${n} (${g}g)`, k: finalK, c: finalC, p: finalP, f: finalF });
+        localStorage.setItem('foods_v3', JSON.stringify(foods));
 
-            document.querySelectorAll('.add-box input').forEach(i=>i.value=''); 
-            document.getElementById('inGrams').value = '100'; 
+        checkCrononutrizione(finalK, finalC);
+        render();
 
-            render();
-            checkSmartAdvice(n, finalK, finalC, TGT_CAL);
-            showToast(`Aggiunto: ${finalK} kcal`);
+        // Pulizia input
+        document.querySelectorAll('.add-box input').forEach(i => i.value = '');
+        document.getElementById('inGrams').value = '100';
 
-            const ptCheck = parseFloat(localStorage.getItem('pt_min_g')) || 0;
-            let curP = foods.reduce((a,b)=>a+b.p, 0);
-            if (ptCheck > 0 && finalP >= 30 && curP < ptCheck) {
-                showToast(`Ottimo carico proteico! 💪`);
-            }
-        } else {
-            alert("Compila i dati e la grammatura.");
-        }
+        // GESTIONE SEQUENZA TOAST (10 secondi l'uno)
+        const totalWait = checkSmartAdvice(n, finalK, finalC, finalP, finalF, TGT_CAL);
+
+        // Il messaggio di conferma si accoda dopo i consigli intelligenti
+        setTimeout(() => {
+            showToast(`✅ Diario aggiornato: +${finalK} kcal`);
+        }, totalWait);
+
+    } else {
+        alert("Compila i dati e la grammatura.");
     }
+}
+
 
         // --- GESTIONE DIGIUNO INTERMITTENTE (AGGIORNATA) ---
     function updateFastingUI() {
@@ -1110,7 +1174,7 @@ function verifyUnlockCode() {
         let adj = { 'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 'detox': 0.95, 'beauty': 1.0, 'recomp': 0.95, 'maintain': 1.0, 'gain': 1.10 };
         TGT_CAL = Math.round(TDEE * adj[state.goal]);
         if (TGT_CAL < BMR) TGT_CAL = Math.round(BMR);
-        
+        TGT_CAL += (parseFloat(localStorage.getItem('extra_today')) || 0);
         // Nuovo Limite Minimo Catabolismo (20% sotto TDEE, ma mai sotto BMR)
         TGT_MIN_KCAL = Math.max(Math.round(TDEE * 0.80), BMR);
         
@@ -1362,6 +1426,11 @@ if (highProtGoals.includes(state.goal)) {
             }
         }
 
+        // Aggiorna il numero nel tasto del salvadanaio
+        const bankBtn = document.getElementById('bankDisplay');
+        if (bankBtn) {
+            bankBtn.innerText = Math.round(parseFloat(localStorage.getItem('calorie_bank')) || 0);
+        }
 
         return { curP: curP, curCal: curCal }; // Questa deve essere l'ULTIMA riga della funzione
     }
@@ -1677,56 +1746,141 @@ ${timerDisplay}
     }
 
 
-    function checkSmartAdvice(n, k, c, max) { if(c > max/2) showToast("Troppi Carboidrati? Gestiscili con Pharmofit."); }
+                            function checkSmartAdvice(n, k, c, p, f, max) {
+    let currentDelay = 0;
+    const durataMessaggio = 10500; 
 
-    function checkTimeAdvice(currentProtein) {
-        const hour = new Date().getHours();
-        const currentPTMinG = parseFloat(localStorage.getItem('pt_min_g')) || 0;
-
-        if (hour >= 6 && hour < 11) {
-            showToast("Buongiorno! Attiva il metabolismo con Pharmofit.");
-        } else if (hour >= 12 && hour < 15) {
-            showToast("Pranzo proteico? Pharmolain aiuta la digestione.");
-        } else if (hour >= 20 && hour <= 22) { 
-            if (currentPTMinG > 0 && currentProtein < currentPTMinG) {
-                let diff = Math.round(currentPTMinG - currentProtein);
-                showToast(`⚠️ SOS Proteine! Mancano ${diff}g per proteggere la massa muscolare oggi. Recupera subito!`);
-            } else {
-                 showToast("La pelle si rigenera di notte. Usa Pharmofiller.");
-            }
-        }
+    if (f > 20) {
+        setTimeout(() => showToast("🍔 Pasto ricco di grassi? Pharmolain aiuta la tua digestione."), currentDelay);
+        currentDelay += durataMessaggio; 
+    } 
+    
+    const cibiSalati = ["pizza", "sushi", "hamburger", "patatine", "salam", "focaccia", "piadina"];
+    if (cibiSalati.some(cibo => n.toLowerCase().includes(cibo))) {
+        setTimeout(() => showToast("🧂 Pasto sapido? Domani mattina Pharmodren per eliminare i liquidi!"), currentDelay);
+        currentDelay += durataMessaggio;
     }
 
-    // --- INIT ---
-    if(!localStorage.getItem('terms_accepted_v1')) document.getElementById('disclaimerModal').style.display='flex';
-    document.getElementById('gender').value = state.g; document.getElementById('age').value = state.age;
-    document.getElementById('weight').value = state.w; document.getElementById('height').value = state.h;
-	    document.getElementById('act').value = state.act; document.getElementById('goal').value = state.goal;
-	    document.getElementById('targetWeightInput').value = state.targetW || ''; document.getElementById('targetDateInput').value = state.targetD || '';
-    document.getElementById('circ_abd').value = state.circ_abd || ''; document.getElementById('circ_coscia').value = state.circ_coscia || ''; document.getElementById('circ_braccio').value = state.circ_braccio || '';
-    
-    document.getElementById('streakDisplay').innerText = `🔥 ${streakCount}gg`;
-    let ps = parseInt(localStorage.getItem('platinum_streak'))||0;
-    let pel = document.getElementById('platinumStreakDisplay');
-    pel.innerText = `${ps}/5 gg ORO`;
-    if(ps>=5) { pel.innerText = `💎 PLATINO (${ps}gg)`; pel.style.color="#FFD700"; }
+    if (p > 25) {
+        setTimeout(() => showToast("💪 Ottimo carico proteico! Se ti senti appesantito, Pharmolain aiuta la digestione."), currentDelay);
+        currentDelay += durataMessaggio;
+    }
 
+    if (c > 40) {
+        setTimeout(() => showToast("🍞 Carboidrati alti? Pharmofit prima del pasto è l'ideale!"), currentDelay);
+        currentDelay += durataMessaggio;
+    }
+    
+    return currentDelay; // <--- FONDAMENTALE: restituisce il tempo totale
+}
+
+
+function checkTimeAdvice(currentProtein) {
+    const hour = new Date().getHours();
+    const currentPTMinG = parseFloat(localStorage.getItem('pt_min_g')) || 0;
+
+    if (hour >= 6 && hour < 11) {
+        showToast("Buongiorno! Attiva il metabolismo con Pharmofit.");
+    } else if (hour >= 12 && hour < 15) {
+        showToast("Pranzo proteico? Pharmolain aiuta la digestione.");
+    } else if (hour >= 20 && hour <= 22) { 
+        if (currentPTMinG > 0 && currentProtein < currentPTMinG) {
+            let diff = Math.round(currentPTMinG - currentProtein);
+            showToast(`⚠️ SOS Proteine! Mancano ${diff}g per proteggere la massa muscolare oggi. Recupera subito!`);
+        } else {
+             showToast("La pelle si rigenera di notte. Usa Pharmofiller.");
+        }
+    }
+}
+
+    // --- INIT ---
+    // --- BLOCCO DI AVVIO UNIFICATO E CORRETTO ---
+window.addEventListener('DOMContentLoaded', () => {
+    // 1. Controllo Disclaimer: apparirà SEMPRE se i dati sono puliti
+    if (localStorage.getItem('terms_accepted_v1') !== 'true') {
+        const modal = document.getElementById('disclaimerModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    // 2. Caricamento dati profilo negli input (con controllo di sicurezza)
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
+
+    setVal('gender', state.g);
+    setVal('age', state.age);
+    setVal('weight', state.w);
+    setVal('height', state.h);
+    setVal('act', state.act);
+    setVal('goal', state.goal);
+    setVal('targetWeightInput', state.targetW || '');
+    setVal('targetDateInput', state.targetD || '');
+    setVal('circ_abd', state.circ_abd || '');
+    setVal('circ_coscia', state.circ_coscia || '');
+    setVal('circ_braccio', state.circ_braccio || '');
+
+    // 3. Esecuzione calcoli e grafica
     renderFavSelect();
-    calc();
+    calc(); 
     renderWater();
     const finalTotals = render(); 
-    checkTimeAdvice(finalTotals.curP); 
-    appReady = true; 
     
-        // Avvio Digiuno
-    document.getElementById('fastingMode').value = localStorage.getItem('fasting_mode') || 'none';
-    document.getElementById('fastingStart').value = localStorage.getItem('fasting_start') || '13:00';
-    updateFastingUI(); 
-    // Questo comando aspetta che la pagina sia pronta prima di agire sul link in fondo
-window.addEventListener('DOMContentLoaded', () => {
-    handleAuth();
+    // 4. Gestione Digiuno
+    const fMode = document.getElementById('fastingMode');
+    const fStart = document.getElementById('fastingStart');
+    if (fMode) fMode.value = localStorage.getItem('fasting_mode') || 'none';
+    if (fStart) fStart.value = localStorage.getItem('fasting_start') || '13:00';
+    updateFastingUI();
+
+        // 5. Gestione Accesso
+    handleAuth(); 
+
+    // MODIFICA: Avvia i consigli solo se i termini sono già stati accettati in passato
+    if (localStorage.getItem('terms_accepted_v1') === 'true') {
+        const finalTotals = render();
+        checkTimeAdvice(finalTotals.curP); 
+    }
+
+    // Segna l'app come pronta
+    appReady = true; 
 });
 
+function useBankCalories() {
+    let currentBank = parseFloat(localStorage.getItem('calorie_bank')) || 0;
+    
+    // Testo educativo e funzionale
+    let infoSalvadanaio = 
+        "💰 IL TUO SALVADANAIO CALORIE\n" +
+        "------------------------------------------------\n" +
+        "In questo spazio si accumulano le calorie che non hai consumato nei giorni scorsi.\n\n" +
+        "• COME FUNZIONA: Se finisci la giornata sotto il tuo target, l'avanzo viene salvato qui ogni mattina alle 04:00.\n" +
+        "• A COSA SERVE: Puoi usare questo 'tesoretto' per concederti uno sgarro o un pasto più abbondante oggi senza rovinare i progressi.\n" +
+        "• SCADENZA: Il salvadanaio si azzera ogni Lunedì mattina per iniziare una nuova settimana.\n" +
+        "------------------------------------------------\n\n" +
+        "Disponibili: " + Math.round(currentBank) + " kcal.\n" +
+        "Quante ne vuoi prelevare per oggi?";
+
+    if (currentBank <= 0) {
+        alert("Il tuo salvadanaio è vuoto.\n\nCompleta la giornata di oggi restando sotto il target per accumulare le prime calorie da usare domani!");
+        return;
+    }
+    
+    let use = prompt(infoSalvadanaio, "200");
+    
+    if (use !== null && use !== "") {
+        let amount = parseInt(use);
+        if (amount > 0 && amount <= currentBank) {
+            let extra = parseFloat(localStorage.getItem('extra_today')) || 0;
+            localStorage.setItem('extra_today', extra + amount);
+            localStorage.setItem('calorie_bank', currentBank - amount);
+            showToast(`✅ Budget aumentato di ${amount} kcal!`);
+            location.reload();
+        } else if (amount > currentBank) {
+            alert("Attenzione: non puoi prelevare più di quanto hai accumulato!");
+        }
+    }
+}
     
 </script>
 </body>
