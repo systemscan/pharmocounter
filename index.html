@@ -637,31 +637,29 @@ function updateProtocolDesc() {
         if (['lose_athlete_15', 'lose_cons', 'recomp', 'gain'].includes(goal)) {
             text = `
                 <strong style="color:#e67e22">⚡ CARB CYCLING (Zig-Zag)</strong><br><br>
-                <b>Come funziona:</b> Alterna giorni <b>High Carb</b> (Mercoledì e Weekend) per spingere in allenamento a giorni <b>Low Carb</b> per definire a riposo.<br><br>
-                <b>Obiettivo:</b> Massimizza l'energia quando serve e brucia grasso quando sei fermo. Ottimizza la sensibilità insulinica.
+                <b>Come funziona:</b> Alterna giorni di <b>Ricarica</b> (Mercoledì e Weekend) a giorni di <b>Deplezione</b> (Scarico).<br><br>
+                <b>Obiettivo:</b> Svuotare le riserve di glicogeno muscolare per ottimizzare la sensibilità insulinica e tenere il metabolismo sempre attivo.
             `;
         } 
         // DIMAGRIMENTO / DETOX (Metodo Shock)
         else {
             text = `
                 <strong style="color:#007aff">🌊 METODO SHOCK (5+2)</strong><br><br>
-                <b>Come funziona:</b> 5 giorni di <b>Scarico</b> (Lun-Ven) per svuotare le riserve di glicogeno, seguiti da 2 giorni di <b>Ricarica</b> (Weekend).<br><br>
+                <b>Come funziona:</b> 5 giorni di <b>Scarico</b> (Lun-Ven) per svuotare le riserve, seguiti da 2 giorni di <b>Ricarica</b> (Weekend).<br><br>
                 <b>Obiettivo:</b> Inganna il metabolismo per evitare stalli e massimizza la lipolisi (brucia-grassi) durante la settimana.
             `;
         }
         
-        descBox.style.color = "#5d4037"; // Colore scuro leggibile
-        descBox.style.fontWeight = "400"; // Peso normale perché usiamo il bold dentro
+        descBox.style.color = "#5d4037"; 
+        descBox.style.fontWeight = "400"; 
         
         localStorage.setItem('active_protocol_v1', 'shock');
         showToast(text.includes("CARB") ? "👑 ⚡ Carb Cycling Attivato!" : "👑 🌊 Metodo Shock Attivato!");
     }
 
-    // NOTA: Qui usiamo innerHTML per leggere i tag <br> e <b>
     descBox.innerHTML = text;
     calc(); 
 }
-
 
 
 // Integrazione nella funzione calc()
