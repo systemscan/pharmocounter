@@ -862,7 +862,6 @@ function useBankCalories() {
     if (!isPremium) {
         alert(
             "🔒 FUNZIONE PREMIUM: IL SALVADANAIO\n\n" +
-            "Il Salvadanaio ti permette di accumulare le calorie che non mangi durante la settimana per usarle quando vuoi.\n\n" +
             "Sblocca questa funzione avanzata inserendo il codice GOLD che trovi nel tuo pacco d'ordine su Pharmo.it!"
         );
         window.open('https://www.pharmo.it', '_blank');
@@ -875,25 +874,30 @@ function useBankCalories() {
         return;
     }
 
-    // SPIEGAZIONE INIZIALE
-    alert(
+    // STEP 1: SPIEGAZIONE LUNGA (Prima di tutto)
+    const spiegazione = 
         "💰 IL TUO SALVADANAIO CALORIE\n\n" +
-        "Hai accumulato: " + currentBank + " kcal\n\n" +
-        "Puoi prelevarle ora per alzare il tuo target giornaliero (utile per pasti liberi o cene fuori)."
-    );
+        "In questo spazio si accumulano le calorie che non hai consumato nei giorni scorsi.\n\n" +
+        "• COME FUNZIONA: Se finisci la giornata sotto il tuo target, l'avanzo viene salvato qui ogni mattina alle 04:00.\n\n" +
+        "• A COSA SERVE: Puoi usare questo 'tesoretto' per concederti uno sgarro o un pasto più abbondante oggi senza rovinare i progressi.\n\n" +
+        "• SCADENZA: Il salvadanaio si azzera ogni Lunedì mattina per iniziare una nuova settimana.\n\n" +
+        "----------------------------------\n" +
+        "ATTUALMENTE DISPONIBILI: " + currentBank + " kcal\n" +
+        "----------------------------------";
 
-    // INPUT UTENTE
-    let amountToUse = prompt(`Quante kcal vuoi prelevare dal totale di ${currentBank} kcal?`, "200");
+    alert(spiegazione);
 
-    // 1. CONTROLLO "ANNULLA" O VUOTO
-    // Se l'utente preme Annulla, amountToUse sarà null. Se non scrive nulla, sarà stringa vuota.
+    // STEP 2: RICHIESTA NUMERO (Subito dopo la spiegazione)
+    let amountToUse = prompt(`Quante kcal vuoi prelevare dal tuo tesoretto di ${currentBank} kcal?`, "200");
+
+    // Controllo se premi Annulla o lasci vuoto
     if (amountToUse === null || amountToUse.trim() === "") {
-        return; // Esce dalla funzione senza fare nulla
+        return; 
     }
 
     let amount = parseInt(amountToUse);
 
-    // 2. VALIDAZIONE NUMERO
+    // Validazione input
     if (isNaN(amount) || amount <= 0) {
         alert("Inserisci un numero valido.");
         return;
@@ -904,17 +908,17 @@ function useBankCalories() {
         return;
     }
 
-    // 3. RICHIESTA DI CONFERMA FINALE (Sicurezza)
-    if (confirm(`Sei sicuro di voler aggiungere ${amount} kcal al tuo target di oggi?`)) {
+    // STEP 3: CONFERMA DI SICUREZZA (Finale)
+    // Questo è il blocco che impedisce errori se premi Invio per sbaglio
+    if (confirm(`Confermi di voler aggiungere ${amount} kcal al tuo target di oggi?`)) {
         let extra = parseFloat(localStorage.getItem('extra_today')) || 0;
         localStorage.setItem('extra_today', extra + amount);
         localStorage.setItem('calorie_bank', currentBank - amount);
         
-        showToast(`👑 Bonus di ${amount} kcal aggiunto con successo!`);
+        showToast(`👑 Bonus di ${amount} kcal aggiunto al target odierno!`);
         setTimeout(() => location.reload(), 1200);
     }
 }
-
 
 function checkCrononutrizione(calorie, carbo) {
     const ora = new Date().getHours();
