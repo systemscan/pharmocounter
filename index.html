@@ -330,6 +330,17 @@
     <div id="protocolDesc" style="margin: 15px auto 0 auto; font-size: 0.8rem; color: #5d4037; line-height: 1.5; text-align: center !important; width: 90%; max-width: 300px;">
     Seleziona il protocollo per attivare il calcolo automatico dei macro.
 </div>
+<div id="intensityArea" style="margin-top: 15px; border-top: 1px dashed #ffeebb; padding-top: 15px; width: 100%;">
+    <span style="font-size: 0.65rem; font-weight: 800; color: #e67e22; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">🚀 Intensità Protocollo (Livello VIP)</span>
+    <div style="display: flex; justify-content: space-between; gap: 5px;">
+        <button id="btnSoft" onclick="setIntensity('soft')" style="flex: 1; padding: 8px 2px; border-radius: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.7rem; font-weight: 700; color: #aaa;">🟢 SOFT</button>
+        <button id="btnStandard" onclick="setIntensity('standard')" style="flex: 1; padding: 8px 2px; border-radius: 10px; border: 1px solid #007aff; background: #007aff; cursor: pointer; font-size: 0.7rem; font-weight: 700; color: #fff;">🟡 STANDARD</button>
+        <button id="btnHard" onclick="setIntensity('hard')" style="flex: 1; padding: 8px 2px; border-radius: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.7rem; font-weight: 700; color: #aaa;">🔴 HARD</button>
+    </div>
+    <div id="vipLockText" onclick="showVipAd()" style="margin-top: 8px; font-size: 0.65rem; color: #e67e22; font-weight: 700; cursor: pointer; text-decoration: underline;">
+        🔒 Sblocca Intensità (Solo Clienti Ricorrenti)
+    </div>
+</div>
 </div> 
 
 <details class="card" style="grid-column: 1 / -1; margin-top: 10px; padding: 15px; background: #f0f4f8; border: 1px solid #dbeafe;">
@@ -492,7 +503,6 @@
                 <button onclick="deleteFav()" style="background:#ff3b30; color:white; border:none; padding:0 12px; border-radius:10px; font-weight:700;">X</button>
             </div>
         </div>
-
         <div class="row">
             <input type="text" id="inName" placeholder="Nome Cibo (es. Pollo)" style="flex:2; font-weight:600;">
         </div>
@@ -517,6 +527,12 @@
             <button class="btn-main" onclick="saveFav()" style="background:#fff; border:2px solid #007aff; color:#007aff; flex:1; padding:10px; font-size:0.8rem;">💾 Salva Cibo<br>& Grammi</button>
             <button class="btn-main" onclick="addCalculated()" style="flex:2; margin-top:0; background:linear-gradient(135deg, #1c1c1e 0%, #3a3a3c 100%);">➕ Aggiungi al Diario</button>
         </div>
+        <div id="vipAdviceBox" style="display:none; margin-top:15px;"></div>
+<button id="sosBtn" onclick="activateSOS()" style="display:block; background: linear-gradient(135deg, #ff3b30 0%, #b30000 100%); color: white; border: none; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 0.8rem; margin-top: 15px; width: 100%; box-shadow: 0 4px 10px rgba(255, 59, 48, 0.3); cursor: pointer;">
+    <span id="sosLockIcon">🔒</span> ⚡ SOS SGARRO (Protocollo VIP)
+</button>
+
+<button id="sosActiveLabel" onclick="deactivateSOS()" style="display:none; background: #fff; color: #ff3b30; border: 2px solid #ff3b30; padding: 10px; border-radius: 14px; font-weight: 800; font-size: 0.8rem; margin-top: 10px; width: 100%; cursor: pointer;">✅ PROTOCOLLO SOS ATTIVO (Clicca per annullare)</button>
     </div>
 
 <ul id="list" class="food-list"></ul>
@@ -543,6 +559,155 @@
 </div>
 
 <script>
+function applySOSLogic(c, p, f) {
+    const isSos = localStorage.getItem('sos_mode_active') === 'true';
+    if (!isSos) return { c, p, f };
+
+    const startTime = localStorage.getItem('sos_start_time');
+    // Se sono passate 24 ore, disattiva da solo
+    if (Date.now() - startTime > 86400000) {
+        localStorage.setItem('sos_mode_active', 'false');
+        return { c, p, f };
+    }
+
+    // PROTOCOLLO DI EMERGENZA:
+    // Carbo: -70% (svuotamento glicogeno)
+    // Grassi: -50% (riduzione lipidica)
+    // Proteine: +10% (protezione muscolare)
+    return {
+        c: Math.round(c * 0.3),
+        p: Math.round(p * 1.1),
+        f: Math.round(f * 0.5)
+    };
+}
+
+function activateSOS() {
+    const isVip = localStorage.getItem('app_vip_v1') === 'true';
+
+    // SE NON È VIP -> PUBBLICITÀ
+    if (!isVip) {
+    alert(
+        "⚡ IL TUO 'TASTO RESET' È BLOCCATO\n\n" +
+        "Hai esagerato a tavola? Non rovinare i progressi di una settimana!\n\n" +
+        "Il Protocollo SOS Sgarro è il sistema d'emergenza esclusivo dei Membri Platinum che:\n\n" +
+        "1. 🛡️ SCHERMA i grassi in eccesso prima che si depositino.\n" +
+        "2. 🔄 RE-SETTA l'insulina rimodulando i macro per compensare l'eccesso.\n" +
+        "3. 🚀 ACCELERA lo svuotamento del glicogeno per tornare subito 'flat'.\n\n" +
+        "Sblocca questa funzione con il tuo Codice VIP e trasforma ogni sgarro in una ricarica metabolica controllata!"
+    );
+    return;
+}
+
+    // SE È VIP -> PROCEDI CON L'ATTIVAZIONE
+    if(confirm("⚠️ ATTIVARE DAMAGE CONTROL?\n\nVuoi attivare il protocollo di emergenza per le prossime 24 ore?")) {
+        localStorage.setItem('sos_mode_active', 'true');
+        localStorage.setItem('sos_start_time', Date.now());
+        showToast("🚀 Protocollo SOS Attivo!");
+        renderSOS();
+        calc();
+    }
+}
+
+
+function deactivateSOS() {
+    if(confirm("Vuoi interrompere il protocollo SOS e tornare ai calcoli standard?")) {
+        localStorage.setItem('sos_mode_active', 'false');
+        renderSOS();
+        calc();
+    }
+}
+
+function renderSOS() {
+    const isSos = localStorage.getItem('sos_mode_active') === 'true';
+    const isVip = localStorage.getItem('app_vip_v1') === 'true';
+    
+    const btn = document.getElementById('sosBtn');
+    const label = document.getElementById('sosActiveLabel');
+    const advice = document.getElementById('vipAdviceBox');
+    const lockIcon = document.getElementById('sosLockIcon');
+
+    if (!btn || !label || !advice) return;
+
+    if (isSos) {
+        // STATO: SOS ATTIVO (Sia VIP che non, se è attivo deve mostrare il countdown/consigli)
+        btn.style.display = 'none';
+        label.style.display = 'block';
+        advice.style.display = 'block';
+        advice.innerHTML = `
+    <div style="background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%); border: 2px solid #ff3b30; padding: 18px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255,59,48,0.1);">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <span style="font-size:1.3rem;">🆘</span>
+            <b style="color:#ff3b30; font-size:1rem; text-transform:uppercase; letter-spacing:0.5px;">Recupero in Corso</b>
+        </div>
+        <p style="font-size:0.85rem; color:#444; line-height:1.5; margin:0;">
+            Le tue riserve di glicogeno sono sature. Abbiamo <b>rimodulato i tuoi obiettivi</b> per le prossime 24 ore: il corpo attingerà energia prioritariamente dall'eccesso di ieri.<br><br>
+            
+            <b style="color:#ff3b30; font-size:0.85rem; text-transform:uppercase;">🔍 Consigli Tecnici:</b><br>
+            • 💧 <b>BILANCIAMENTO IDRICO:</b> 1.5L d'acqua + <b>Pharmodren</b> per prosciugare la ritenzione dello sgarro.<br>
+            • 🛡️ <b>OTTIMIZZAZIONE:</b> Assumi <b>Pharmofit</b> prima dei pasti: spinge il corpo a ossidare i grassi anziché gli zuccheri.<br>
+            • 🌬️ <b>PANCIA PIATTA:</b> <b>Pharmolain</b> subito per supportare la digestione e ridurre il gonfiore fermentativo.
+        </p>
+    </div>
+`;
+    } else {
+        // STATO: SOS NON ATTIVO (Mostriamo il tasto a tutti)
+        btn.style.display = 'block';
+        label.style.display = 'none';
+        advice.style.display = 'none';
+
+        if (isVip) {
+            // VIP: Tasto normale e senza lucchetto
+            btn.style.opacity = '1';
+            if(lockIcon) lockIcon.style.display = 'none';
+        } else {
+            // NON VIP: Tasto leggermente trasparente e con lucchetto
+            btn.style.opacity = '0.7';
+            if(lockIcon) lockIcon.style.display = 'inline';
+        }
+    }
+}
+
+
+// Funzione per mostrare pubblicità VIP
+function showVipAd() {
+    alert("💎 LIVELLO PLATINUM / VIP\n\nIl selettore d'intensità è riservato ai clienti che hanno un piano di integrazione ricorrente attivo su Pharmo.it.\n\nContatta l'assistenza o controlla la tua area riservata per ricevere il codice di attivazione VIP!");
+}
+
+// Funzione per cambiare intensità (solo se autorizzato)
+function setIntensity(lvl) {
+    const isVip = localStorage.getItem('app_vip_v1') === 'true';
+    if (!isVip && lvl !== 'standard') {
+        showVipAd();
+        return;
+    }
+    localStorage.setItem('intensity_v1', lvl);
+    updateIntensityUI();
+    calc(); // Ricalcola tutto con la nuova potenza
+}
+
+// Aggiorna l'aspetto dei bottoni
+function updateIntensityUI() {
+    const lvl = localStorage.getItem('intensity_v1') || 'standard';
+    const isVip = localStorage.getItem('app_vip_v1') === 'true';
+    
+    // Reset stili
+    ['btnSoft', 'btnStandard', 'btnHard'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.style.background = "#fff";
+        btn.style.color = "#aaa";
+        btn.style.borderColor = "#ddd";
+    });
+
+    // Attiva quello scelto
+    const activeBtn = document.getElementById('btn' + lvl.charAt(0).toUpperCase() + lvl.slice(1));
+    activeBtn.style.background = (lvl === 'soft') ? "#34c759" : (lvl === 'hard' ? "#ff3b30" : "#007aff");
+    activeBtn.style.color = "#fff";
+    activeBtn.style.borderColor = activeBtn.style.background;
+
+    // Nascondi link sblocco se già VIP
+    if(isVip) document.getElementById('vipLockText').style.display = 'none';
+}
+
 function showPremiumAd() {
     alert(
         "🚀 POTENZIA IL TUO METABOLISMO\n\n" +
@@ -667,41 +832,39 @@ function updateProtocolDesc() {
 function applyProtocolLogic(targetC, targetP, targetF) {
     const activeProt = localStorage.getItem('active_protocol_v1') || 'none';
     const isPremium = localStorage.getItem('app_premium_v1') === 'true';
-    // Recuperiamo l'obiettivo per distinguere Shock da Atleta
+    const intensity = localStorage.getItem('intensity_v1') || 'standard';
     const currentGoal = document.getElementById('goal').value; 
     const isAthlete = ['lose_athlete_15', 'lose_cons', 'recomp', 'gain'].includes(currentGoal);
 
-    // Se non è attivo il protocollo o non è Premium, ritorna i valori base
     if (activeProt !== 'shock' || !isPremium) {
         return { c: targetC, p: targetP, f: targetF };
     }
 
-    const day = new Date().getDay(); // 0=Dom, 1=Lun, 2=Mar, 3=Mer, 4=Gio, 5=Ven, 6=Sab
-    let modC = 1;
+    const day = new Date().getDay();
+    let scarico = 0.80; // Default Standard (-20%)
+    let ricarica = 1.20; // Default Standard (+20%)
 
+    // --- LOGICA INTENSITÀ VIP ---
+    if (intensity === 'soft') {
+        scarico = 0.90; // -10%
+        ricarica = 1.10; // +10%
+    } else if (intensity === 'hard') {
+        scarico = 0.65; // -35% (Aggressivo)
+        ricarica = 1.35; // +35% (Ricarica potente)
+    }
+
+    let modC = 1;
     if (isAthlete) {
-        // --- ⚡ LOGICA ATLETA (CARB CYCLING: Zig-Zag) ---
-        // Giorni ALTI: Mercoledì (3), Sabato (6), Domenica (0)
-        // Giorni BASSI: Lun, Mar, Gio, Ven
-        if (day === 3 || day === 6 || day === 0) {
-            modC = 1.25; // +25% (Boost Allenamento)
-        } else {
-            modC = 0.85; // -15% (Definizione/Riposo)
-        }
+        // Atleta: Mer, Sab, Dom sono ricarica
+        modC = (day === 3 || day === 6 || day === 0) ? ricarica : scarico;
     } else {
-        // --- 🌊 LOGICA DIMAGRIMENTO (METODO SHOCK: 5+2) ---
-        // Giorni ALTI: Sabato (6), Domenica (0)
-        // Giorni BASSI: Lun - Ven
-        if (day === 6 || day === 0) {
-            modC = 1.20; // +20% (Ricarica Weekend)
-        } else {
-            modC = 0.80; // -20% (Scarico Totale)
-        }
+        // Shock: Sab, Dom sono ricarica
+        modC = (day === 6 || day === 0) ? ricarica : scarico;
     }
 
     return {
         c: Math.round(targetC * modC),
-        p: targetP, // Le proteine restano fisse per proteggere i muscoli
+        p: targetP,
         f: targetF
     };
 }
@@ -1527,6 +1690,11 @@ function checkCrononutrizione(calorie, carbo) {
         TGT_C = finalMacros.c;
         TGT_P = finalMacros.p;
         TGT_F = finalMacros.f;
+        // Dopo aver applicato il protocollo (Shock/Cycling), se c'è l'SOS attivo, taglia ancora
+        const finalSOS = applySOSLogic(TGT_C, TGT_P, TGT_F);
+        TGT_C = finalSOS.c;
+        TGT_P = finalSOS.p;
+        TGT_F = finalSOS.f;
 
         // 8. RICALCOLO DINAMICO CALORIE
         TGT_CAL = (TGT_C * 4) + (TGT_P * 4) + (TGT_F * 9);
