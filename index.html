@@ -2200,7 +2200,7 @@ function checkCrononutrizione(calorie, carbo) {
     // --- INFO POPUPS ---
     function showPrecisionInfo() {
         const platinumStreak = parseInt(localStorage.getItem('platinum_streak')) || 0;
-        const msg = `🏆 SISTEMA CARTE PRECISIONE PHARMO 🏆\n\nIl tuo obiettivo è usare tutte le calorie (TGT CAL) a disposizione, senza sforare!\n\n**CRITERI GIORNALIERI (Precisione Massima):**\n   ‣ ORO 🥇:  Rimanere entro 50 Kcal dal Target (massimo deficit).\n   ‣ ARGENTO 🥈: Rimanere tra 51 Kcal e 100 Kcal dal Target.\n   ‣ BRONZO 🥉: Rimanere tra 101 Kcal e 200 Kcal dal Target.\n   \n   (Lasciare >200 Kcal o Sforare = Serie interrotta.)\n\n**RICONOSCIMENTO PLATINO (Costanza):**\nLa Carta Platino è il traguardo massimo a lungo termine!\nSi sblocca mantenendo la **Carta ORO (Perfetto)** per 5 giorni consecutivi.\n\n   ‣ Stato attuale: ${platinumStreak} giorni consecutivi Oro.\n\nMantieni la serie Oro per sbloccare la **Serie Platino** al 5° giorno e ottenere un vantaggi su pharmo.it!`;
+        const msg = `🏆 SISTEMA CARTE PRECISIONE PHARMO 🏆\n\nIl tuo obiettivo è usare tutte le calorie (TGT CAL) a disposizione, senza sforare!\n\n**CRITERI GIORNALIERI (Precisione Massima):**\n   ‣ ORO 🥇:  Rimanere entro 50 Kcal dal Target (massimo deficit).\n   ‣ ARGENTO 🥈: Rimanere tra 51 Kcal e 100 Kcal dal Target.\n   ‣ BRONZO 🥉: Rimanere tra 101 Kcal e 200 Kcal dal Target.\n   \n   (Lasciare >200 Kcal o Sforare = Serie interrotta.)\n\n**RICONOSCIMENTO PLATINO (Costanza):**\nLa Carta Platino è il traguardo massimo a lungo termine!\nSi sblocca mantenendo la **Carta ORO (Perfetto)** per 5 giorni consecutivi.\n\n   ‣ Stato attuale: ${platinumStreak} giorni consecutivi Oro.\n\nMantieni la serie Oro per sbloccare la **Serie Platino** al 5° giorno e ottenere vantaggi su pharmo.it!`;
         alert(msg);
     }
 
@@ -2418,4 +2418,5 @@ if (isPremium) {
 </script>
 </body>
 </html>
+
 
