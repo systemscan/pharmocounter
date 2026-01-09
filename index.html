@@ -1848,12 +1848,19 @@ localStorage.setItem('extra_today', 0);
     // ... (prosegui con state.g, state.age, ecc.)
     
     // 1. RECUPERO DATI (Input Utente)
+        // 1. RECUPERO DATI (con valori di sicurezza per evitare il blocco)
     state.g = document.getElementById('gender').value;
-    state.age = parseFloat(document.getElementById('age').value);
-    state.w = parseFloat(document.getElementById('weight').value);
-    state.h = parseFloat(document.getElementById('height').value);
-    state.act = parseFloat(document.getElementById('act').value);
+    state.age = parseFloat(document.getElementById('age').value) || 30;
+    state.w = parseFloat(document.getElementById('weight').value) || 0;
+    state.h = parseFloat(document.getElementById('height').value) || 0;
+    state.act = parseFloat(document.getElementById('act').value) || 1.2;
     state.goal = document.getElementById('goal').value;
+
+    // Se peso o altezza sono 0, non procedere col calcolo matematico per evitare errori
+    if (state.w === 0 || state.h === 0) {
+        document.getElementById('scientificData').innerHTML = "Inserisci Peso e Altezza nel profilo per calcolare i dati.";
+        return; 
+    }
 
     // --- FIX NOMI DINAMICI (Shock vs Carb Cycling) ---
     const shockOpt = document.querySelector('#advProtocol option[value="shock"]');
@@ -1974,11 +1981,12 @@ localStorage.setItem('extra_today', 0);
         document.getElementById('shopTitle').innerText = sTit; 
         document.getElementById('shopDesc').innerHTML = sDes;
         document.getElementById('scientificData').innerHTML = `Metabolismo Basale (BMR): <b>${Math.round(BMR)}</b> kcal<br>Fabbisogno Totale (TDEE): <b>${TDEE}</b> kcal<br>Piano: <b>${gTxt}</b>`;
+
     }
     
     document.getElementById('targetDisplay').innerText = Math.round(TGT_CAL);
 
-    let bmrPct = Math.min((BMR / TGT_CAL) * 100, 95);
+    let bmrPct = (TGT_CAL > 0) ? Math.min((BMR / TGT_CAL) * 100, 95) : 0;
     document.getElementById('bmrMarker').style.left = bmrPct + "%";
     document.getElementById('bmrTag').style.left = bmrPct + "%";
 
