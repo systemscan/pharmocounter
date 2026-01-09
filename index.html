@@ -2374,10 +2374,10 @@ if (badge) {
 
     // 2. Attiva il PLATINUM SOLO nei traguardi (7, 14, 30+)
     if (actualStreak === 7 || actualStreak === 14 || actualStreak >= 30) {
-        badge.classList.add('streak-platinum');
+        badge.classList.add('streak-gold');     // Questo dà la base ORO
+        badge.classList.add('streak-platinum'); // Questo dà la brillantezza PLATINUM
     }
 
-    // Scrive il numero, esempio: "🔥 7/7" o "🔥 8/14"
     badge.innerText = "🔥 " + actualStreak + "/" + target;
 }
 
