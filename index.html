@@ -1243,9 +1243,16 @@ function getBankBalance() {
 
 function useBankCalories() {
     const isPremium = localStorage.getItem('app_premium_v1') === 'true';
+    const isRecoveryActive = localStorage.getItem('recovery_active_today') === 'true';
     const currentBank = Math.round(getBankBalance());
 
-    // --- LOGICA UTENTE BASE (Marketing) ---
+    // --- 1. BLOCCO GELO PER RECOVERY ---
+    if (isRecoveryActive) {
+        alert("❄️ SALVADANAIO CONGELATO (DEEP FREEZE)\n\nIl protocollo Boost-Recovery è attivo. Per resettare gli ormoni ed evitare l'accumulo di grasso, il prelievo dal salvadanaio è disattivato per 7 giorni.");
+        return; 
+    }
+
+    // --- 2. LOGICA UTENTE BASE (Marketing) ---
     if (!isPremium) {
         alert(
             "🔒 FUNZIONE PREMIUM: IL SALVADANAIO\n\n" +
@@ -2149,6 +2156,26 @@ localStorage.setItem('extra_today', 0);
         if (bankBtn) {
             bankBtn.innerText = Math.round(parseFloat(localStorage.getItem('calorie_bank')) || 0);
         }
+// Cerca il bottone del salvadanaio (quello con l'onclick useBankCalories)
+const allButtons = document.getElementsByTagName('button');
+for (let btn of allButtons) {
+    if (btn.getAttribute('onclick') === 'useBankCalories()') {
+        const isRecoveryActive = localStorage.getItem('recovery_active_today') === 'true';
+        if (isRecoveryActive) {
+            // EFFETTO GHIACCIO ❄️
+            btn.style.background = "rgba(179, 229, 252, 0.3)"; // Azzurro ghiaccio trasparente
+            btn.style.borderColor = "#81d4fa";
+            btn.style.color = "#0288d1";
+            btn.innerHTML = "<span>❄️</span> SALVADANAIO FROZEN: " + Math.round(getBankBalance()) + " kcal";
+        } else {
+            // COLORE ORIGINALE (Arancio)
+            btn.style.background = "rgba(255, 149, 0, 0.05)";
+            btn.style.borderColor = "rgba(255, 149, 0, 0.4)";
+            btn.style.color = "#ff9500";
+            btn.innerHTML = "<span>💰</span> SALVADANAIO: " + Math.round(getBankBalance()) + " kcal";
+        }
+    }
+}
 
         return { curP: curP, curCal: curCal }; // Questa deve essere l'ULTIMA riga della funzione
     }
