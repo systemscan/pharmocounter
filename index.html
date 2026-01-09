@@ -6,6 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pharmocounter</title>
     <style>
+    /* LIVELLO 1 & 2 (7 e 14 giorni): ORO CLASSICO */
+.streak-gold {
+    background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+    color: white !important;
+    border: 2px solid #fff !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    animation: crownPulse 2s infinite;
+}
+
+/* LIVELLO 3 (30+ giorni): ORO PLATINUM (Bianco Brillante/Diamante) */
+.streak-platinum {
+    background: linear-gradient(135deg, #E5E4E2 0%, #FFFFFF 50%, #B4C4D8 100%) !important;
+    color: #1a3a5a !important; /* Testo scuro per leggere sul bianco */
+    border: 2px solid #00d4ff !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 10px rgba(0, 212, 255, 0.4);
+    animation: crownPulse 1s infinite; /* Più veloce per l'eccellenza */
+    font-weight: 900 !important;
+}
+
     @keyframes crownPulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.2); }
@@ -2335,11 +2354,35 @@ function getProtocolToast() {
     // --- BLOCCO DI AVVIO UNIFICATO E CORRETTO ---
 window.addEventListener('DOMContentLoaded', () => {
 // --- AGGIORNAMENTO VISIVO DELLA SERIE ---
-const actualStreak = localStorage.getItem('streak_days') || 1;
+const actualStreak = parseInt(localStorage.getItem('streak_days')) || 1;
 const badge = document.getElementById('streakDisplay');
+
 if (badge) {
-    badge.innerText = "🔥 " + actualStreak + "/7";
+    let target = 7;
+    let styleClass = "";
+
+    // Determina il traguardo e lo stile
+    if (actualStreak >= 30) {
+        target = 30;
+        styleClass = "streak-platinum";
+    } else if (actualStreak >= 14) {
+        target = 14;
+        styleClass = "streak-gold";
+    } else if (actualStreak >= 7) {
+        target = 7;
+        styleClass = "streak-gold";
+    }
+
+    // Aggiorna il testo (es: 7/7, 8/14, 31/30)
+    badge.innerText = "🔥 " + actualStreak + "/" + target;
+
+    // Applica lo stile
+    badge.classList.remove('streak-gold', 'streak-platinum');
+    if (styleClass) {
+        badge.classList.add(styleClass);
+    }
 }
+
     // 1. Controllo Disclaimer: apparirà SEMPRE se i dati sono puliti
     if (localStorage.getItem('terms_accepted_v1') !== 'true') {      
         const modal = document.getElementById('disclaimerModal');
