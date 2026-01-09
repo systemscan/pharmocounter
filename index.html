@@ -172,8 +172,35 @@
         .dyk-text { font-size: 0.85rem; color: #555; line-height: 1.5; }
 
         /* MODALS & TOAST */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; backdrop-filter: blur(5px); }
-        .modal-box { background: white; width: 100%; max-width: 350px; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        /* Stile unico per tutti i popup */
+.modal-overlay, #recoveryModal { 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.85); 
+    z-index: 99999; 
+    display: none; /* Inizialmente nascosto */
+    justify-content: center; 
+    align-items: center; 
+    padding: 20px; 
+    box-sizing: border-box; 
+    backdrop-filter: blur(5px); 
+}
+
+/* Il contenitore bianco interno */
+.modal-box { 
+    background: white; 
+    width: 100%; 
+    max-width: 350px; 
+    border-radius: 20px; 
+    padding: 25px; 
+    text-align: center; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    max-height: 90vh; 
+    overflow-y: auto; 
+    position: relative;
+}
+
         .modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: #1c1c1e; }
         .modal-text { font-size: 0.9rem; color: #444; line-height: 1.5; text-align: left; margin-bottom: 20px; }
         .modal-btn { background: #007aff; color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; }
@@ -316,27 +343,19 @@
         <button class="modal-btn" onclick="acceptTerms()">Ho Letto, Compreso e Accetto</button>
     </div>
 </div>
-<div id="recoveryModal" class="modal" style="display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); z-index:9999;">
-    <div class="modal-content" style="max-width:500px; width:90%; border:2px solid #FFD700; background:#fff; border-radius:20px; padding:25px; box-shadow:0 0 30px rgba(255,215,0,0.3); max-height:90vh; overflow-y:auto;">
-        
-        <h2 style="color:#b8860b; text-align:center; margin-top:0; font-family:sans-serif; letter-spacing:1px;">💎 BIO-RECOVERY PLATINUM</h2>
-        <p style="text-align:center; font-style:italic; color:#666; margin-bottom:20px;">Protocollo di Modulazione Ormonale</p>
 
-        <div style="font-family:sans-serif; line-height:1.5; color:#333;">
-            <p><strong>Ascolta il tuo corpo: senti un calo di potenza?</strong></p>
-            <p style="font-size:0.95em;">Se la stanchezza si fa sentire, potrebbe non essere solo mancanza di volontà, ma un segnale dei tuoi ormoni. Il <strong>Bio-Recovery Platinum</strong> interviene per resettare i messaggeri chimici del tuo metabolismo.</p>
+        <div id="recoveryModal" class="modal-overlay">
+    <div class="modal-box" style="border: 2px solid #007aff;">
+        <h2 style="color:#007aff; margin-top:0; font-weight:800;">💎 RECOVERY PLATINUM</h2>
+        <p style="font-size:0.85rem; color:#666; font-style:italic; margin-bottom:20px;">Protocollo di Reset Metabolico</p>
 
-            <p style="color:#b8860b; font-weight:bold; margin-top:20px; border-bottom:1px solid #eee;">🧬 COSA STIAMO ANDANDO A RESETTARE:</p>
-            
+        <div style="text-align:left; font-size:0.9rem; line-height:1.5; color:#333;">
             <ul style="list-style:none; padding:0; font-size:0.9em;">
-                <li style="margin-bottom:12px;">📉 <strong>Cortisolo Control:</strong> Lo stress da dieta cronica alza il cortisolo, l'ormone che distrugge i muscoli e blocca il dimagrimento addominale. Alzando le calorie, segnaliamo al corpo che l'emergenza è finita.</li>
-                <li style="margin-bottom:12px;">🚀 <strong>Leptina Boost:</strong> Dopo giorni di restrizione, la Leptina (l'ormone della sazietà e del metabolismo) crolla. Questa ricarica la riporta in alto, "riaccendendo" la tua fornace brucia-grassi.</li>
-                <li style="margin-bottom:12px;">🔄 <strong>T3 Optimization:</strong> Proteggiamo la conversione degli ormoni tiroidei, che rallenta quando i carboidrati sono bassi per troppo tempo.</li>
+                <li style="margin-bottom:12px;">📉 <strong>Cortisolo Control:</strong> Lo stress da dieta blocca il dimagrimento, specialmente sulla pancia. Alzando strategicamente le calorie, diciamo al corpo che può finalmente rilassarsi e tornare a bruciare grasso.</li>
+                <li style="margin-bottom:12px;">🚀 <strong>Leptina Boost:</strong> Quando mangi poco per troppo tempo, il corpo va in "risparmio energetico" e senti sempre fame. Questo reset riaccende la tua fornace interna e spegne la fame nervosa.</li>
+                <li style="margin-bottom:12px;">🔄 <strong>T3 Optimization:</strong> Serve a riattivare il metabolismo lento, dando nuova energia al tuo corpo per evitare quegli stalli in cui il peso non scende più nonostante i sacrifici.</li>
             </ul>
-
-            <p style="color:#b8860b; font-weight:bold; margin-top:20px; border-bottom:1px solid #eee;">🍝 L'EFFETTO SUI TUOI MACRO:</p>
-            <p style="font-size:0.9em;">Non è cibo in più a caso. È un <strong>Refeed Tecnico</strong>: alziamo i carboidrati per riempire le scorte di glicogeno muscolare e dare nuova linfa al sistema nervoso centrale.</p>
-
+            
             <div style="background:#fff9e6; border:1px dashed #ffd700; padding:15px; border-radius:12px; margin-top:20px;">
                 <p style="color:#d97706; font-weight:bold; margin-top:0; font-size:0.9em;">⚠️ VINCOLI DEL PROTOCOLLO ELITE</p>
                 <p style="font-size:0.85em; margin-bottom:5px;">La gestione ormonale richiede precisione. Per massimizzare l'effetto "Reset" senza accumulare grasso:</p>
@@ -348,11 +367,12 @@
         </div>
 
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
-            <button onclick="confirmBioRecovery()" style="background:linear-gradient(135deg, #FFD700, #FFA500); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; font-size:1em; cursor:pointer; box-shadow:0 4px 10px rgba(255,165,0,0.3);">🧬 ATTIVA RESET ORMONALE</button>
-            <button onclick="closeRecoveryModal()" style="background:transparent; color:#888; border:none; padding:10px; font-size:0.9em; cursor:pointer; text-decoration:underline;">🛡️ RESTA IN DEFICIT</button>
+            <button onclick="confirmRecovery()" style="background:linear-gradient(135deg, #007aff, #0056b3); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1rem;">🧬 ATTIVA RESET</button>
+            <button onclick="closeRecoveryModal()" style="background:transparent; color:#888; border:none; cursor:pointer; text-decoration:underline; font-size:0.85rem;">🛡️ RESTA IN DEFICIT</button>
         </div>
     </div>
 </div>
+
 
 
 <div id="rewardModal" class="modal-overlay">
@@ -674,16 +694,14 @@
 // Apre il modal con i controlli Platinum
 function openRecoveryModal() {
     const streak = parseInt(localStorage.getItem('streak_days')) || 0;
-    const ultimoSOS = parseInt(localStorage.getItem('last_sos_energy')) || 0;
-    const giorniPassati = (Date.now() - ultimoSOS) / (1000 * 60 * 60 * 24);
+    const ultimoRecovery = parseInt(localStorage.getItem('last_recovery_timestamp')) || 0;
+    const giorniPassati = (Date.now() - ultimoRecovery) / (1000 * 60 * 60 * 24);
 
-    // Requisito 1: Serie di 7 giorni
     if (streak < 7) {
-        alert("🔒 Lo Status Platinum (7 giorni di serie) è richiesto per il Bio-Recovery.");
+        alert("🔒 Lo Status Platinum (Serie 7+) è richiesto per il Recovery.");
         return;
     }
     
-    // Requisito 2: Frequenza (10 giorni)
     if (giorniPassati < 10) {
         alert("⚠️ Protocollo in ricarica. Disponibile tra " + Math.ceil(10 - giorniPassati) + " giorni.");
         return;
@@ -692,20 +710,19 @@ function openRecoveryModal() {
     document.getElementById('recoveryModal').style.display = 'flex';
 }
 
-// Chiude il modal
 function closeRecoveryModal() {
     document.getElementById('recoveryModal').style.display = 'none';
 }
 
-// Attivazione effettiva
-function confirmBioRecovery() {
+function confirmRecovery() {
     const oggi = Date.now();
-    localStorage.setItem('sos_active_today', 'true');
-    localStorage.setItem('last_sos_energy', oggi);
+    localStorage.setItem('recovery_active_today', 'true');
+    localStorage.setItem('last_recovery_timestamp', oggi);
     
-    // Blocca il Salvadanaio per 7 giorni esatti
+    // Blocca il Salvadanaio per 7 giorni
     localStorage.setItem('salvadanaio_blocked_until', oggi + (7 * 24 * 60 * 60 * 1000));
     
+    // Mantenuto il tuo testo originale
     alert("🧬 Reset Ormonale Attivato. La tua fornace metabolica si sta riaccendendo!");
     location.reload();
 }
