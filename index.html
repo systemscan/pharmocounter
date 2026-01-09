@@ -549,8 +549,8 @@
     </button>
 
         <button id="bioRecoveryBtn" class="btn-recovery-active" onclick="openRecoveryModal()">
-            <span>💎</span> BOOST-RECOVERY
-        </button>
+    <span id="recoveryLock">🔒</span> BOOST-RECOVERY
+</button>
     </div>
 
         <div style="position: relative; margin-top: 30px;">
@@ -692,28 +692,34 @@
 function openRecoveryModal() {
     const isVip = localStorage.getItem('app_vip_v1') === 'true';
     const streak = parseInt(localStorage.getItem('streak_days')) || 0;
-
-    // Se NON è VIP oppure NON ha la serie di 7 giorni, mostriamo l'avviso completo
-    if (!isVip || streak < 7) {
+    
+    // 1. SE NON È VIP: Appare l'alert con i tuoi testi esatti
+    if (!isVip) {
         alert(
             "💎 IL RECOVERY È RISERVATO AI CLIENTI VIP.\n" +
             "Sbloccalo con il codice che ottieni con un piano di acquisto ricorrente attivo su pharmo.it\n\n" +
-            "Per attivarlo, contatta l’assistenza e ricevi il codice di attivazione VIP!\n\n" +
-            "🔒 NOTA: È richiesta anche una serie di almeno 7 giorni per l'attivazione (Attuale: " + streak + ")."
+            "Per attivarlo, contatta l'assistenza e ricevi il codice di attivazione VIP!\n\n" +
+            "🔒 NOTA: È richiesta anche una serie di almeno 7 giorni per l'attivazione (Attuale: " + streak + ")"
         );
-        // Dopo l'OK dell'alert, l'esecuzione continua e mostriamo il banner informativo sotto
+        // Apriamo comunque il banner per fargli leggere i benefici
+        document.getElementById('recoveryModal').style.display = 'flex';
+        return;
     }
 
-    // Controllo del tempo di ricarica (questo è l'unico blocco che ferma tutto se non rispettato)
+    // 2. SE È VIP MA NON HA 7 GIORNI: Niente alert subito, apriamo il banner (il blocco sarà al click su "Attiva")
+    if (isVip && streak < 7) {
+        // Nessun alert qui, lasciamo che legga il banner e venga bloccato dopo dal confirmRecovery
+    }
+
+    // 3. CONTROLLO RICARICA (10 GIORNI)
     const ultimoRecovery = parseInt(localStorage.getItem('last_recovery_timestamp')) || 0;
     const giorniPassati = (Date.now() - ultimoRecovery) / (1000 * 60 * 60 * 24);
     
     if (giorniPassati < 10) {
         alert("⚠️ Protocollo in ricarica. Disponibile tra " + Math.ceil(10 - giorniPassati) + " giorni.");
-        return; // Ferma l'apertura se è in ricarica
+        return; 
     }
 
-    // Apre il banner informativo per tutti
     document.getElementById('recoveryModal').style.display = 'flex';
 }
 
@@ -725,24 +731,31 @@ function confirmRecovery() {
     const isVip = localStorage.getItem('app_vip_v1') === 'true';
     const streak = parseInt(localStorage.getItem('streak_days')) || 0;
 
-    // Controllo specifico per l'utente
+    // Controllo specifico per l'utente (Non-VIP)
     if (!isVip) {
         alert("💎 Il Recovery è riservato ai clienti VIP.\nSbloccalo con il codice che ottieni con gli acquisti ricorrenti su pharmo.it");
         return;
     }
 
+    // Controllo specifico per il VIP senza serie (Il tuo caso)
     if (streak < 7) {
         alert("🔒 REQUISITO SERIE NON RAGGIUNTO\n\nIl protocollo Boost-Recovery richiede una costanza di almeno 7 giorni (Serie 7+) per garantire l'efficacia del reset ormonale.\n\nAttuale: " + streak + " giorni.");
         return;
     }
-    const oggi = Date.now();
+
+    // Controllo 10 giorni
+    const ultimoRecovery = parseInt(localStorage.getItem('last_recovery_timestamp')) || 0;
+    const giorniPassati = (Date.now() - ultimoRecovery) / (1000 * 60 * 60 * 24);
+    if (giorniPassati < 10) {
+        alert("⚠️ Protocollo in ricarica. Disponibile tra " + Math.ceil(10 - giorniPassati) + " giorni.");
+        return;
+    }
+
+    // Attivazione
     localStorage.setItem('recovery_active_today', 'true');
-    localStorage.setItem('last_recovery_timestamp', oggi);
+    localStorage.setItem('last_recovery_timestamp', Date.now());
+    localStorage.setItem('salvadanaio_blocked_until', Date.now() + (7 * 24 * 60 * 60 * 1000));
     
-    // Blocca il Salvadanaio per 7 giorni
-    localStorage.setItem('salvadanaio_blocked_until', oggi + (7 * 24 * 60 * 60 * 1000));
-    
-    // Mantenuto il tuo testo originale
     alert("🧬 Reset Ormonale Attivato. La tua fornace metabolica si sta riaccendendo!");
     location.reload();
 }
@@ -1811,100 +1824,105 @@ localStorage.setItem('extra_today', 0);
 
 
         function calc() {
-        // 1. RECUPERO DATI (Input Utente)
-        state.g = document.getElementById('gender').value;
-        state.age = parseFloat(document.getElementById('age').value);
-        state.w = parseFloat(document.getElementById('weight').value);
-        state.h = parseFloat(document.getElementById('height').value);
-        state.act = parseFloat(document.getElementById('act').value);
-        state.goal = document.getElementById('goal').value;
-                // --- FIX NOMI DINAMICI (Shock vs Carb Cycling) ---
-        const shockOpt = document.querySelector('#advProtocol option[value="shock"]');
-        if (shockOpt) {
-            // Se l'obiettivo è da Atleta, Massa o Ricomposizione -> Si chiama Carb Cycling
-            if (['lose_athlete_15', 'lose_cons', 'recomp', 'gain'].includes(state.goal)) {
-                shockOpt.innerText = "👑 ⚡ Carb Cycling Pro"; 
-            } else {
-                // Altrimenti (Dimagrimento, Detox, Beauty) -> Si chiama Metodo Shock
-                shockOpt.innerText = "👑 🌊 Metodo Shock Metabolico"; 
-            }
-        }
+    // --- GESTIONE VISIVA LUCCHETTO ---
+    const recoveryLock = document.getElementById('recoveryLock');
+    if (recoveryLock) {
+        const isVip = localStorage.getItem('app_vip_v1') === 'true';
+        const streak = parseInt(localStorage.getItem('streak_days')) || 0;
+        // Se VIP e serie >= 7 mostra diamante, altrimenti lucchetto
+        recoveryLock.innerText = (isVip && streak >= 7) ? "💎" : "🔒";
+    }
+    // ... (prosegui con state.g, state.age, ecc.)
+    
+    // 1. RECUPERO DATI (Input Utente)
+    state.g = document.getElementById('gender').value;
+    state.age = parseFloat(document.getElementById('age').value);
+    state.w = parseFloat(document.getElementById('weight').value);
+    state.h = parseFloat(document.getElementById('height').value);
+    state.act = parseFloat(document.getElementById('act').value);
+    state.goal = document.getElementById('goal').value;
 
-        state.targetW = parseFloat(document.getElementById('targetWeightInput').value) || 0;
-        state.targetD = document.getElementById('targetDateInput').value || '';
-        state.circ_abd = parseFloat(document.getElementById('circ_abd').value) || 0;
-        state.circ_coscia = parseFloat(document.getElementById('circ_coscia').value) || 0;
-        state.circ_braccio = parseFloat(document.getElementById('circ_braccio').value) || 0;
-        
-        // Salva profilo
-        localStorage.setItem('profile_v3', JSON.stringify(state));
-// --- LOGICA BIO-RECOVERY PLATINUM DENTRO CALC() ---
-const isBioActive = localStorage.getItem('sos_active_today') === 'true';
-
-if (isBioActive) {
-    // 1. Portiamo le calorie al Mantenimento (TDEE) per resettare gli ormoni
-    // Assicurati che la variabile 'tdee' sia definita nel tuo script
-    dailyTarget = tdee; 
-
-    // 2. Ripartizione Macro Refeed (Alta quota Carboidrati)
-    // Carboidrati al 55%, Proteine 25%, Grassi 20%
-    proteinTarget = (dailyTarget * 0.25) / 4;
-    fatsTarget = (dailyTarget * 0.20) / 9;
-    carbsTarget = (dailyTarget * 0.55) / 4;
-
-    // Opzionale: Cambia il titolo del box macro per feedback visivo
-    const macroTitle = document.querySelector('.macro-title');
-    if(macroTitle) macroTitle.innerText = "💎 BIO-RECOVERY ATTIVO";
-}
-
-        // 2. SUGGERITORE PESO (Grafica)
-        const suggestionBox = document.getElementById('idealWeightSuggestion');
-        if (suggestionBox) {
-            suggestionBox.style.display = 'block';
-            if (['lose_athlete_15', 'lose_cons', 'recomp'].includes(state.goal)) {
-                suggestionBox.innerHTML = "🦵 <b>Atleta:</b> Il peso è relativo. Conta la composizione corporea.";
-                suggestionBox.style.background = "#fff5e6"; suggestionBox.style.color = "#b35900"; suggestionBox.style.border = "1px solid #ffcc00";
-            } else if (['gain'].includes(state.goal)) {
-                suggestionBox.innerHTML = "💪 <b>Massa:</b> Punta a salire di peso pulito.";
-                suggestionBox.style.background = "#d4edda"; suggestionBox.style.color = "#155724"; suggestionBox.style.border = "1px solid #34c759";
-            } else {
-                const hM = state.h / 100;
-                const minW = Math.round(18.5 * hM * hM);
-                const maxW = Math.round(24.9 * hM * hM);
-                suggestionBox.innerHTML = `💡 Range Salute: <b>${minW} - ${maxW} kg</b>`;
-                suggestionBox.style.background = "#eef7ff"; suggestionBox.style.color = "#004494"; suggestionBox.style.border = "1px solid #cceeff";
-            }
-        }
-
-        // 3. CALCOLO METABOLISMO (BMR & TDEE)
-        let s = (10 * state.w) + (6.25 * state.h) - (5 * state.age);
-        BMR = (state.g === 'm') ? s + 5 : s - 161;
-        TDEE = Math.round(BMR * state.act);
-
-        // 4. DEFINIZIONE OBIETTIVI E VARIABILI (CORRETTO: Prima definisco le variabili!)
-        let p_r, c_r, f_r, gTxt, sTit, sDes;
-        let reqHighProt = false;
-        
-        // Imposto le percentuali PRIMA di fare i calcoli
-        if (state.goal.startsWith('lose')) {
-            sTit = "Protocollo Total Body 3-Fasi"; sDes = stackLoss;
-            if (state.goal === 'lose_aggr') { c_r=0.4; p_r=0.3; f_r=0.3; gTxt="Perdita Peso Standard (-20%)"; reqHighProt=false; }
-            else if (state.goal === 'lose_athlete_15') { c_r=0.35; p_r=0.35; f_r=0.3; gTxt="Atleta Cut Aggressivo (-15%)"; reqHighProt=true; }
-            else { c_r=0.4; p_r=0.3; f_r=0.3; gTxt="Atleta Cut Conservativo (-10%)"; reqHighProt=true; }
-        } else if (state.goal === 'recomp') {
-            c_r=0.35; p_r=0.35; f_r=0.3; gTxt="Ricomposizione Corporea"; sTit="Protocollo Recomp"; sDes=stackRecomp; reqHighProt=true;
+    // --- FIX NOMI DINAMICI (Shock vs Carb Cycling) ---
+    const shockOpt = document.querySelector('#advProtocol option[value="shock"]');
+    if (shockOpt) {
+        if (['lose_athlete_15', 'lose_cons', 'recomp', 'gain'].includes(state.goal)) {
+            shockOpt.innerText = "👑 ⚡ Carb Cycling Pro"; 
         } else {
-            // Defaults (Detox, Beauty, Maintain, Gain)
-            c_r=0.5; p_r=0.2; f_r=0.3; 
-            if(state.goal==='detox') { gTxt="Detox (-5%)"; sTit="Protocollo Detox"; sDes=stackDetox; }
-            else if(state.goal==='beauty') { gTxt="Beauty (Mantenimento)"; sTit="Protocollo Glow"; sDes=stackBeauty; c_r=0.45; p_r=0.25; }
-            else if(state.goal==='gain') { 
-                gTxt="Surplus (+10%)"; sTit="Protocollo Struttura"; sDes=stackGain; 
-                c_r=0.45; p_r=0.30; reqHighProt = true; 
-            }
-            else { gTxt="Mantenimento"; sTit="Protocollo Definizione"; sDes=stackGain; }
+            shockOpt.innerText = "👑 🌊 Metodo Shock Metabolico"; 
         }
+    }
 
+    state.targetW = parseFloat(document.getElementById('targetWeightInput').value) || 0;
+    state.targetD = document.getElementById('targetDateInput').value || '';
+    state.circ_abd = parseFloat(document.getElementById('circ_abd').value) || 0;
+    state.circ_coscia = parseFloat(document.getElementById('circ_coscia').value) || 0;
+    state.circ_braccio = parseFloat(document.getElementById('circ_braccio').value) || 0;
+    
+    localStorage.setItem('profile_v3', JSON.stringify(state));
+
+    // 2. SUGGERITORE PESO (Grafica)
+    const suggestionBox = document.getElementById('idealWeightSuggestion');
+    if (suggestionBox) {
+        suggestionBox.style.display = 'block';
+        if (['lose_athlete_15', 'lose_cons', 'recomp'].includes(state.goal)) {
+            suggestionBox.innerHTML = "🦵 <b>Atleta:</b> Il peso è relativo. Conta la composizione corporea.";
+            suggestionBox.style.background = "#fff5e6"; suggestionBox.style.color = "#b35900"; suggestionBox.style.border = "1px solid #ffcc00";
+        } else if (['gain'].includes(state.goal)) {
+            suggestionBox.innerHTML = "💪 <b>Massa:</b> Punta a salire di peso pulito.";
+            suggestionBox.style.background = "#d4edda"; suggestionBox.style.color = "#155724"; suggestionBox.style.border = "1px solid #34c759";
+        } else {
+            const hM = state.h / 100;
+            const minW = Math.round(18.5 * hM * hM);
+            const maxW = Math.round(24.9 * hM * hM);
+            suggestionBox.innerHTML = `💡 Range Salute: <b>${minW} - ${maxW} kg</b>`;
+            suggestionBox.style.background = "#eef7ff"; suggestionBox.style.color = "#004494"; suggestionBox.style.border = "1px solid #cceeff";
+        }
+    }
+
+    // 3. CALCOLO METABOLISMO (BMR & TDEE)
+    let s = (10 * state.w) + (6.25 * state.h) - (5 * state.age);
+    BMR = (state.g === 'm') ? s + 5 : s - 161;
+    TDEE = Math.round(BMR * state.act);
+
+    // --- DEFINIZIONE VARIABILI ---
+    let p_r, c_r, f_r, gTxt, sTit, sDes;
+    let reqHighProt = false;
+
+    // 4. DEFINIZIONE OBIETTIVI (TESTI E SIMBOLI ORIGINALI)
+    if (state.goal.startsWith('lose')) {
+        sTit = "Protocollo Total Body 3-Fasi"; sDes = stackLoss;
+        if (state.goal === 'lose_aggr') { c_r=0.4; p_r=0.3; f_r=0.3; gTxt="Perdita Peso Standard (-20%)"; reqHighProt=false; }
+        else if (state.goal === 'lose_athlete_15') { c_r=0.35; p_r=0.35; f_r=0.3; gTxt="Atleta Cut Aggressivo (-15%)"; reqHighProt=true; }
+        else { c_r=0.4; p_r=0.3; f_r=0.3; gTxt="Atleta Cut Conservativo (-10%)"; reqHighProt=true; }
+    } else if (state.goal === 'recomp') {
+        c_r=0.35; p_r=0.35; f_r=0.3; gTxt="Ricomposizione Corporea"; sTit="Protocollo Recomp"; sDes=stackRecomp; reqHighProt=true;
+    } else {
+        c_r=0.5; p_r=0.2; f_r=0.3; 
+        if(state.goal==='detox') { gTxt="Detox (-5%)"; sTit="Protocollo Detox"; sDes=stackDetox; }
+        else if(state.goal==='beauty') { gTxt="Beauty (Mantenimento)"; sTit="Protocollo Glow"; sDes=stackBeauty; c_r=0.45; p_r=0.25; }
+        else if(state.goal==='gain') { 
+            gTxt="Surplus (+10%)"; sTit="Protocollo Struttura"; sDes=stackGain; 
+            c_r=0.45; p_r=0.30; reqHighProt = true; 
+        }
+        else { gTxt="Mantenimento"; sTit="Protocollo Definizione"; sDes=stackGain; }
+    }
+
+    // --- 5. LOGICA RECOVERY vs STANDARD ---
+    // --- LOGICA RECOVERY PLATINUM ---
+const isRecoveryActive = localStorage.getItem('recovery_active_today') === 'true';
+
+if (isRecoveryActive) {
+    TGT_CAL = TDEE; // Usa TDEE (tutto maiuscolo)
+    TGT_C = Math.round((TGT_CAL * 0.55) / 4); 
+    TGT_P = Math.round((TGT_CAL * 0.25) / 4); 
+    TGT_F = Math.round((TGT_CAL * 0.20) / 9);
+    
+    const statusText = document.getElementById('statusText');
+    if (statusText) {
+        statusText.innerHTML = "💎 <b style='color:#b8860b'>BOOST-RECOVERY ATTIVO:</b> Reset ormonale in corso!";
+    }
+} else { 
+    // Qui metti il tuo ELSE che racchiude tutto il resto...
         // 5. CALCOLO CALORIE BASE
         let adj = { 
             'lose_aggr': 0.80, 'lose_athlete_15': 0.85, 'lose_cons': 0.90, 
@@ -1912,95 +1930,72 @@ if (isBioActive) {
             'maintain': 1.0, 'gain': 1.10 
         };
         TGT_CAL = Math.round(TDEE * adj[state.goal]);
-// --- LOGICA RECOVERY PLATINUM ---
-const isRecoveryActive = localStorage.getItem('recovery_active_today') === 'true';
 
-if (isRecoveryActive) {
-    // Portiamo le calorie al Mantenimento (TDEE) per il reset ormonale
-    TGT_CAL = TDEE; 
-
-    // Alziamo i Carboidrati al 55% (Reset Metabolico)
-    TGT_C = Math.round((TGT_CAL * 0.55) / 4);
-    
-    // Proteine al 25% e Grassi al 20%
-    TGT_P = Math.round((TGT_CAL * 0.25) / 4);
-    TGT_F = Math.round((TGT_CAL * 0.20) / 9);
-    
-    // Cambia il testo nel diario per avvisare l'utente
-    const statusText = document.getElementById('statusText');
-    if (statusText) {
-        statusText.innerHTML = "💎 <b style='color:#b8860b'>RECOVERY ATTIVO:</b> Mangia a sazietà per resettare il metabolismo!";
-    }
-}
-
-        // 6. CALCOLO MACRO BASE (Ora c_r, p_r esistono!)
+        // 6. CALCOLO MACRO BASE
         let baseC = Math.round((TGT_CAL * c_r) / 4);
         let baseP = Math.round((TGT_CAL * p_r) / 4);
         let baseF = Math.round((TGT_CAL * f_r) / 9);
 
-        // 7. APPLICA LOGICA PROTOCOLLO (Metodo Shock)
+        // 7. APPLICA LOGICA PROTOCOLLO
         const finalMacros = applyProtocolLogic(baseC, baseP, baseF);
         TGT_C = finalMacros.c;
         TGT_P = finalMacros.p;
         TGT_F = finalMacros.f;
-        // Dopo aver applicato il protocollo (Shock/Cycling), se c'è l'SOS attivo, taglia ancora
+
         const finalSOS = applySOSLogic(TGT_C, TGT_P, TGT_F);
         TGT_C = finalSOS.c;
         TGT_P = finalSOS.p;
         TGT_F = finalSOS.f;
 
-        // 8. RICALCOLO DINAMICO CALORIE
         TGT_CAL = (TGT_C * 4) + (TGT_P * 4) + (TGT_F * 9);
+    }
 
-        // 9. CONTROLLO PROTEINE MINIME
-        PT_MIN_G = reqHighProt ? Math.round(state.w * PT_MIN_MULTIPLIER) : 0;
-        localStorage.setItem('pt_min_g', PT_MIN_G);
-        
-        // Paracadute Proteico
-        if (reqHighProt && TGT_P < PT_MIN_G) {
-            TGT_P = PT_MIN_G + 10; 
-            TGT_CAL = (TGT_C * 4) + (TGT_P * 4) + (TGT_F * 9); // Ricalcola calorie se alziamo le proteine
-        }
+    // --- 6. AGGIORNAMENTO UI E CALCOLI COMUNI ---
+    PT_MIN_G = reqHighProt ? Math.round(state.w * PT_MIN_MULTIPLIER) : 0;
+    localStorage.setItem('pt_min_g', PT_MIN_G);
+    
+    if (reqHighProt && TGT_P < PT_MIN_G) {
+        TGT_P = PT_MIN_G + 10; 
+        TGT_CAL = (TGT_C * 4) + (TGT_P * 4) + (TGT_F * 9);
+    }
 
-        // 10. AGGIUNTA SALVADANAIO E LIMITI SICUREZZA
-        TGT_CAL += (parseFloat(localStorage.getItem('extra_today')) || 0);
-        
-        if (TGT_CAL < BMR) TGT_CAL = Math.round(BMR);
-        TGT_MIN_KCAL = Math.max(Math.round(TDEE * 0.80), BMR);
+    TGT_CAL += (parseFloat(localStorage.getItem('extra_today')) || 0);
+    
+    if (TGT_CAL < BMR) TGT_CAL = Math.round(BMR);
+    TGT_MIN_KCAL = Math.max(Math.round(TDEE * 0.80), BMR);
 
-        // 11. AGGIORNA VISUALIZZAZIONE (UI)
+    // 11. AGGIORNA VISUALIZZAZIONE (UI)
+    if (!isRecoveryActive) {
         document.getElementById('shopTitle').innerText = sTit; 
         document.getElementById('shopDesc').innerHTML = sDes;
-        document.getElementById('targetDisplay').innerText = Math.round(TGT_CAL);
         document.getElementById('scientificData').innerHTML = `Metabolismo Basale (BMR): <b>${Math.round(BMR)}</b> kcal<br>Fabbisogno Totale (TDEE): <b>${TDEE}</b> kcal<br>Piano: <b>${gTxt}</b>`;
-
-        // Barra BMR
-        let bmrPct = Math.min((BMR / TGT_CAL) * 100, 95);
-        document.getElementById('bmrMarker').style.left = bmrPct + "%";
-        document.getElementById('bmrTag').style.left = bmrPct + "%";
-
-        // Braccio Input
-        const armWrap = document.getElementById('braccio_input_wrapper');
-        if(armWrap) armWrap.style.display = ['gain', 'recomp', 'lose_athlete_15', 'lose_cons'].includes(state.goal) ? 'block' : 'none';
-
-        // Dashboard Proteine
-        const protDashArea = document.getElementById('proteinDashboardArea');
-        if (['lose_athlete_15', 'lose_cons', 'recomp', 'gain'].includes(state.goal)) {
-            protDashArea.style.display = 'block';
-            document.getElementById('protMinLabel').innerText = PT_MIN_G;
-            let markerPos = Math.min((PT_MIN_G / TGT_P) * 100, 95);
-            document.getElementById('protMinMarker').style.left = markerPos + "%";
-        } else {
-            protDashArea.style.display = 'none';
-        }
-
-        // Funzioni finali
-        updatePredictionStatus();
-        checkCircumference();
-        render();
-        localStorage.setItem('last_day_target', TGT_CAL);
-        localStorage.setItem('last_day_bmr', BMR);
     }
+    
+    document.getElementById('targetDisplay').innerText = Math.round(TGT_CAL);
+
+    let bmrPct = Math.min((BMR / TGT_CAL) * 100, 95);
+    document.getElementById('bmrMarker').style.left = bmrPct + "%";
+    document.getElementById('bmrTag').style.left = bmrPct + "%";
+
+    const armWrap = document.getElementById('braccio_input_wrapper');
+    if(armWrap) armWrap.style.display = ['gain', 'recomp', 'lose_athlete_15', 'lose_cons'].includes(state.goal) ? 'block' : 'none';
+
+    const protDashArea = document.getElementById('proteinDashboardArea');
+    if (['lose_athlete_15', 'lose_cons', 'recomp', 'gain'].includes(state.goal)) {
+        protDashArea.style.display = 'block';
+        document.getElementById('protMinLabel').innerText = PT_MIN_G;
+        let markerPos = Math.min((PT_MIN_G / TGT_P) * 100, 95);
+        document.getElementById('protMinMarker').style.left = markerPos + "%";
+    } else {
+        protDashArea.style.display = 'none';
+    }
+
+    updatePredictionStatus();
+    checkCircumference();
+    render();
+    localStorage.setItem('last_day_target', TGT_CAL);
+    localStorage.setItem('last_day_bmr', BMR);
+}
 
 
     // --- RENDER UI CORRETTO ---
