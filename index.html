@@ -2354,40 +2354,41 @@ function getProtocolToast() {
     // --- BLOCCO DI AVVIO UNIFICATO E CORRETTO ---
 window.addEventListener('DOMContentLoaded', () => {
 // --- AGGIORNAMENTO VISIVO DELLA SERIE ---
+// --- LOGICA BADGE SERIE (STREAK) ---
 const actualStreak = parseInt(localStorage.getItem('streak_days')) || 1;
 const badge = document.getElementById('streakDisplay');
 
 if (badge) {
     let target = 7;
-    let styleClass = "";
+    // Rimuoviamo le classi precedenti per resettare lo stile
+    badge.classList.remove('streak-platinum', 'streak-gold'); 
 
-    // Determina il traguardo e lo stile
-    if (actualStreak >= 30) {
+    // 1. Determina il target attuale
+    if (actualStreak > 14) {
         target = 30;
-        styleClass = "streak-platinum";
-    } else if (actualStreak >= 14) {
+    } else if (actualStreak > 7) {
         target = 14;
-        styleClass = "streak-gold";
-    } else if (actualStreak >= 7) {
+    } else {
         target = 7;
-        styleClass = "streak-gold";
     }
 
-    // Aggiorna il testo (es: 7/7, 8/14, 31/30)
+    // 2. Attiva il PLATINUM SOLO nei traguardi (7, 14, 30+)
+    if (actualStreak === 7 || actualStreak === 14 || actualStreak >= 30) {
+        badge.classList.add('streak-platinum');
+    }
+
+    // Scrive il numero, esempio: "🔥 7/7" o "🔥 8/14"
     badge.innerText = "🔥 " + actualStreak + "/" + target;
-
-    // Applica lo stile
-    badge.classList.remove('streak-gold', 'streak-platinum');
-    if (styleClass) {
-        badge.classList.add(styleClass);
-    }
 }
 
-    // 1. Controllo Disclaimer: apparirà SEMPRE se i dati sono puliti
-    if (localStorage.getItem('terms_accepted_v1') !== 'true') {      
-        const modal = document.getElementById('disclaimerModal');
-        if (modal) modal.style.display = 'flex';
+// --- CONTROLLO DISCLAIMER ---
+// Apparirà SEMPRE se i dati sono puliti o è la prima volta
+if (localStorage.getItem('terms_accepted_v1') !== 'true') {      
+    const modal = document.getElementById('disclaimerModal');
+    if (modal) {
+        modal.style.display = 'flex';
     }
+}
 
     // 2. Caricamento dati profilo negli input (con controllo di sicurezza)
     const setVal = (id, val) => {
