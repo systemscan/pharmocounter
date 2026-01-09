@@ -1089,10 +1089,11 @@ function applyProtocolLogic(targetC, targetP, targetF) {
 
 
 // ======================================================
-// 🔑 CHIAVI DI ACCESSO
+// 🔑 CHIAVI DI ACCESSO UNIFICATE
 // ======================================================
-const CHIAVE_BASIC = "PHARMOWIN26";   // Accesso Base (Newsletter)
-const CHIAVE_PRO = "GOLDPHARMO";      // Accesso PRO (Tutto sbloccato)
+const CHIAVE_BASIC = "PHARMOWIN26";   // Solo funzioni base
+const CHIAVE_GOLD  = "GOLDPHARMO";    // Sblocca Premium/Gold
+const CHIAVE_VIP   = "PLATINUM26";    // Sblocca TUTTO (VIP/Platinum)
 
 function handleAuth() {
     const isUnlocked = localStorage.getItem('app_unlocked_v1');
@@ -1203,11 +1204,6 @@ function handleAuth() {
 
 function verifyUnlockCode() {
     const entered = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
-    
-    // Definiamo i codici corretti
-    const CHIAVE_BASIC = "PHARMOWIN26"; 
-    const CHIAVE_GOLD = "GOLDPHARMO";   
-    const CHIAVE_VIP = "PLATINUM26";
 
     // Controlliamo se il codice è uno di quelli validi
     if (entered === CHIAVE_GOLD || entered === CHIAVE_BASIC || entered === CHIAVE_VIP) {
