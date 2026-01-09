@@ -697,7 +697,8 @@ function openRecoveryModal() {
     if (!isVip || streak < 7) {
         alert(
             "💎 IL RECOVERY È RISERVATO AI CLIENTI VIP.\n" +
-            "Sbloccalo con il codice che ottieni con gli acquisti ricorrenti su pharmo.it\n\n" +
+            "Sbloccalo con il codice che ottieni con un piano di acquisto ricorrente attivo su pharmo.it\n\n" +
+            "Per attivarlo, contatta l’assistenza e ricevi il codice di attivazione VIP!\n\n" +
             "🔒 NOTA: È richiesta anche una serie di almeno 7 giorni per l'attivazione (Attuale: " + streak + ")."
         );
         // Dopo l'OK dell'alert, l'esecuzione continua e mostriamo il banner informativo sotto
@@ -868,7 +869,7 @@ function renderSOS() {
 
 // Funzione per mostrare pubblicità VIP
 function showVipAd() {
-    alert("💎 LIVELLO PLATINUM / VIP\n\nIl selettore d'intensità è riservato ai clienti che hanno un piano di integrazione ricorrente attivo su Pharmo.it.\n\nContatta l'assistenza o controlla la tua area riservata per ricevere il codice di attivazione VIP!");
+    alert("💎 LIVELLO PLATINUM / VIP\n\nIl selettore d'intensità è riservato ai clienti che hanno un piano di acquisto ricorrente attivo su Pharmo.it.\n\n Per attivarlo, contatta l’assistenza e ricevi il codice di attivazione VIP!");
 }
 
 // Funzione per cambiare intensità (solo se autorizzato)
