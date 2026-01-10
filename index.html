@@ -1456,15 +1456,21 @@ localStorage.setItem('extra_today', 0);
         let dayOfWeek = new Date().getDay(); 
         
         // Se oggi è Lunedì, facciamo il bilancio finale della settimana passata
- if (dayOfWeek === 1) { 
+ // Cerca questo pezzo e sostituiscilo:
+if (dayOfWeek === 1) { 
     const isPremium = localStorage.getItem('app_premium_v1') === 'true';
     if (!isPremium) {
         alert("📊 REPORT SETTIMANALE DISPONIBILE!\n\nAbbiamo analizzato i tuoi dati. Per vedere il report completo dei tuoi progressi devi essere un utente PRO.");
         localStorage.setItem('calorie_bank', 0);
-      
-} // Questa chiude il lunedì
-            let bank = parseFloat(localStorage.getItem('calorie_bank')) || 0;
-            let grassoPerso = Math.round(bank / 7);
+    } else { // Aggiunto l'else per far fluire il report solo ai premium
+        let bank = parseFloat(localStorage.getItem('calorie_bank')) || 0;
+        let grassoPerso = Math.round(bank / 7);
+        // ... resto del codice del report ...
+    }
+    localStorage.setItem('calorie_bank', 0); // Reset dopo il report
+} else if (dayOfWeek === 0) { 
+    // ...
+
 
             if (bank > 0) {
                 let reportTesto = `📊 IL MIO TRAGUARDO SETTIMANALE PHARMO:\n\n` +
@@ -1576,7 +1582,7 @@ localStorage.setItem('extra_today', 0);
         localStorage.setItem('foods_v3', JSON.stringify([])); 
         localStorage.setItem('water_count', 0);
         localStorage.setItem('water_last_time', 0);
-        localStorage.setltem('sos_act ive_today', 'false'); // Disattiva il bonus per il nuovo giorno
+        localStorage.setItem('sos_active_today', 'false');
         localStorage.setItem('extra_today',0); // Azzera eventuali calorie extra residue
         localStorage.setItem('app_date', todayStr);
 
