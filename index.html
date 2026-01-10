@@ -1842,10 +1842,14 @@ localStorage.setItem('extra_today', 0);
     state.goal = document.getElementById('goal').value;
 
     // Se i dati sono a zero, mostra l'avviso e ferma lo script
-    if (state.w === 0 || state.h === 0) {
+            if (state.w === 0 || state.h === 0) {
         document.getElementById('scientificData').innerHTML = "⚠️ Inserisci <b>Peso</b> e <b>Altezza</b> per vedere i calcoli.";
+        
+        updatePredictionStatus(); // <--- AGGIUNGI QUESTA RIGA QUI!
+        
         return; 
     }
+
 
     // Gestione Nomi Dinamici Protocollo
     const shockOpt = document.querySelector('#advProtocol option[value="shock"]');
