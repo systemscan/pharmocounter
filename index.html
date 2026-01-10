@@ -1,11 +1,28 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
+<nead>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pharmocounter</title>
     <style>
+    * {
+    box-sizing: border-box;
+}
+
+body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+.app-container {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* MODIFICHE PER DISCREZIONE - Uniscile alla classe precedente */
 .btn-recovery-active {
     background: linear-gradient(135deg, #00d4ff 0%, #0077ff 50%, #00d4ff 100%) !important;
@@ -512,6 +529,12 @@
         
         <div class="info-box" id="circAnalysis" style="grid-column: 1 / -1; margin-top: 5px; background: white; border-color: #cceeff; color: #004494;">Compila per analisi settimanale.</div>
     </div>
+    <div style="grid-column: 1 / -1; margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+    <button onclick="openBackupUI()" style="width:100%; background-color:#f8f9fa; color:#007aff; border:1px solid #007aff; padding:10px; border-radius:12px; font-weight:700; font-size:0.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+        ☁️ Backup Dati & Transfer (PRO)
+    </button>
+</div>
+
 </details>
 <div style="grid-column: 1 / -1; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
     <label style="color:#007aff; font-weight:700; margin-bottom: 8px; display:block;">⏱️ Digiuno Intermittente (Opzionale)</label>
@@ -546,13 +569,18 @@
 <div style="text-align:center; margin-top: 10px; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
     
     <button onclick="useBankCalories()" 
-            style="background: rgba(255, 149, 0, 0.05); border: 1px solid rgba(255, 149, 0, 0.4); color: #ff9500; padding: 5px 15px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-        <span>💰</span> SALVADANAIO: <span id="bankDisplay">0</span> kcal
-    </button>
+    style="background: rgba(255, 149, 0, 0.05); border: 1px solid rgba(255, 149, 0, 0.4); color: #ff9500; padding: 5px 15px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+    <span id="bankLockIcon">🔒</span> SALVADANAIO: <span id="bankDisplay">0</span> kcal
+</button>
 
         <button id="bioRecoveryBtn" class="btn-recovery-active" onclick="openRecoveryModal()">
-    <span id="recoveryLock">🔒</span> BOOST-RECOVERY
-</button>
+        <span id="recoveryLock">🔒</span> BOOST-RECOVERY
+    </button>
+<button onclick="openCrono()" 
+            style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.4); color: #007aff; padding: 5px 15px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+        <span id="cronoLockIcon">🧬</span> BIO-TIMING
+    </button>
+
     </div>
 
         <div style="position: relative; margin-top: 30px;">
@@ -585,13 +613,14 @@
     <div style="font-size: 0.8rem; font-weight: 700; color: #004494; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">
         📅 Data Stimata Traguardo
     </div>
-    <div id="projectedDateDisplay" style="font-size: 1.8rem; font-weight: 800; color: #007aff; margin-bottom: 5px;">
-        -- / --
+<div id="projectedDateDisplay" onclick="showDataLockPopup()" style="font-size: 1.8rem; font-weight: 800; color: #007aff; margin-bottom: 5px; cursor: pointer;">
+        🔒 PRO
     </div>
     <div class="pred-status" id="predictionStatus" style="font-size: 0.85rem; font-weight: 500; margin-top: 10px; padding: 10px; border-radius: 10px; background: white; border: 1px solid #eee;">
-        Inserisci Peso e Obiettivo nel Profilo ⚙️
+        Sblocca la <b>Data Traguardo</b> con la versione PRO su pharmo.it
     </div>
 </div>
+
         
     <div style="text-align: center; margin-top: 15px;">
         <span style="font-size: 0.9rem; color: var(--text-sec); font-weight: 600;">PRECISIONE GIORNALIERA:</span>
@@ -617,6 +646,10 @@
 
     <details class="card macros-box">
         <summary>Dettaglio Nutrienti</summary>
+        <button onclick="openCoach()" 
+            style="background: rgba(90, 103, 216, 0.08); border: 1px solid rgba(90, 103, 216, 0.3); color: #5a67d8; padding: 5px 14px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+        <span id="coachLockIcon">🧠</span> ANALISI COACH AI
+    </button>
         <div class="macro-grid">
             <div class="macro-item"><div class="bar-label"><span>Carboidrati</span><span id="carbTxt" style="color:var(--carb-color)">0 / 0g</span></div><div class="track"><div class="fill" id="carbBar" style="background:var(--carb-color)"></div></div></div>
             <div class="macro-item"><div class="bar-label"><span>Proteine</span><span id="protTxt" style="color:var(--prot-color)">0 / 0g</span></div><div class="track"><div class="fill" id="protBar" style="background:var(--prot-color)"></div></div></div>
@@ -647,6 +680,18 @@
             <input type="number" id="inProt100" placeholder="P">
             <input type="number" id="inFat100" placeholder="G">
         </div>
+<div id="sugarContainer" style="margin-top: 15px; background: #fdfdfd; padding: 10px; border-radius: 12px; border: 1px solid #eee;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span id="sugarLabel" style="font-size: 0.75rem; font-weight: 700; color: #555;">🍬 DI CUI ZUCCHERI (g)</span>
+        <span id="sugarBadge" style="font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 800;">🔒 BLOCCATO</span>
+    </div>
+    
+    <div id="sugarInputWrapper" style="position: relative;">
+        <input type="number" id="inSugar" placeholder="0" 
+               onclick="handleSugarClick()" 
+               style="width: 100%; height: 40px; border-radius: 8px; border: 1px solid #ddd; text-align: center; font-weight: 700; transition: 0.3s;">
+    </div>
+</div>
 
         <div class="row" style="align-items: center; margin-top:10px; background:#fafafa; padding:8px; border-radius:10px; border:1px solid #eee;">
             <span style="font-size:0.85rem; font-weight:700; color:#333;">⚖️ Quantità che mangi:</span>
@@ -1219,7 +1264,7 @@ function verifyUnlockCode() {
             localStorage.setItem('app_vip_v1', 'true');
             localStorage.setItem('intensity_v1', 'standard');
         }
-
+updateSugarUI(); 
         document.getElementById('authGate').style.display = 'none';
         showToast("✅ Accesso attivato!");
         
@@ -1678,6 +1723,7 @@ localStorage.setItem('extra_today', 0);
     const c100 = parseFloat(document.getElementById('inCarb100').value) || 0;
     const p100 = parseFloat(document.getElementById('inProt100').value) || 0;
     const f100 = parseFloat(document.getElementById('inFat100').value) || 0;
+    const s100 = parseFloat(document.getElementById('inSugar').value) || 0; // Prende gli zuccheri
     const g = parseFloat(document.getElementById('inGrams').value);
 
     if (n && !isNaN(k100) && g > 0) {
@@ -1685,21 +1731,21 @@ localStorage.setItem('extra_today', 0);
         const finalC = Math.round((c100 * g) / 100);
         const finalP = Math.round((p100 * g) / 100);
         const finalF = Math.round((f100 * g) / 100);
+        const finalS = Math.round((s100 * g) / 100); // Calcola lo zucchero effettivo
 
-        foods.push({ n: `${n} (${g}g)`, k: finalK, c: finalC, p: finalP, f: finalF });
+        // Salva tutto nell'oggetto foods (inclusa la 's')
+        foods.push({ n: `${n} (${g}g)`, k: finalK, c: finalC, p: finalP, f: finalF, s: finalS });
         localStorage.setItem('foods_v3', JSON.stringify(foods));
 
         checkCrononutrizione(finalK, finalC);
-        render();
+        render(); // Aggiorna la vista
 
-        // Pulizia input
+        // Pulisce tutti i campi input
         document.querySelectorAll('.add-box input').forEach(i => i.value = '');
         document.getElementById('inGrams').value = '100';
 
-        // GESTIONE SEQUENZA TOAST (10 secondi l'uno)
+        // Avvisi del Coach/Toast
         const totalWait = checkSmartAdvice(n, finalK, finalC, finalP, finalF, TGT_CAL);
-
-        // Il messaggio di conferma si accoda dopo i consigli intelligenti
         setTimeout(() => {
             showToast(`✅ Diario aggiornato: +${finalK} kcal`);
         }, totalWait);
@@ -1708,6 +1754,7 @@ localStorage.setItem('extra_today', 0);
         alert("Compila i dati e la grammatura.");
     }
 }
+
 
 
         // --- GESTIONE DIGIUNO INTERMITTENTE (AGGIORNATA) ---
@@ -1957,6 +2004,10 @@ localStorage.setItem('extra_today', 0);
     if (TGT_CAL < BMR) TGT_CAL = Math.round(BMR);
     TGT_MIN_KCAL = Math.max(Math.round(TDEE * 0.80), BMR);
 
+    // --- CALCOLO DEI MACRO REALI ---
+    let consumedC = 0, consumedP = 0, consumedF = 0;
+    foods.forEach(f => { consumedC += f.c; consumedP += f.p; consumedF += f.f; });
+
     // --- 7. AGGIORNAMENTO UI ---
     document.getElementById('scientificData').innerHTML = `Metabolismo Basale (BMR): <b>${Math.round(BMR)}</b> kcal<br>Fabbisogno Totale (TDEE): <b>${TDEE}</b> kcal<br>Piano: <b>${gTxt}</b>`;
 
@@ -1980,14 +2031,45 @@ localStorage.setItem('extra_today', 0);
     } else {
         protDashArea.style.display = 'none';
     }
+    // ... (sopra ci sono i calcoli di BMR e TDEE)
 
+    // --- AGGIORNAMENTO DINAMICO BADGE (PRO/VIP) ---
+    const isPremium = localStorage.getItem('app_premium_v1') === 'true';
+    const isVip = localStorage.getItem('app_vip_v1') === 'true';
+    const streakDays = parseInt(localStorage.getItem('streak_days')) || 0;
+
+  
+    // Lucchetto Coach AI
+    const cIcon = document.getElementById('coachLockIcon');
+    if (cIcon) cIcon.innerHTML = isPremium ? "🧠" : "🔒";
+
+    // Lucchetto Bio-Timing
+    const tIcon = document.getElementById('cronoLockIcon');
+    if (tIcon) tIcon.innerHTML = isVip ? "🧬" : "🔒";
+
+    // Lucchetto Boost Recovery (VIP + Serie 7)
+    const rIcon = document.getElementById('recoveryLock');
+    if (rIcon) rIcon.innerHTML = (isVip && streakDays >= 7) ? "💎" : "🔒";
+
+document.getElementById('targetDateInput').addEventListener('change', function() {
+    const isPremium = localStorage.getItem('app_premium_v1') === 'true';
+    if (!isPremium) {
+        alert("🔒 DATA BLOCCATA\n\n\n\nLa gestione della Data Traguardo è riservata ai membri PRO. Sbloccala con il tuo codice Pharmo che trovi dentro il pacco.");
+        this.value = ""; // Svuota la scelta fatta
+        updatePredictionStatus(); // Forza il ritorno del lucchetto 🔒 PRO
+    }
+});
+
+    // --- AGGIORNAMENTO UI FINALE ---
     updatePredictionStatus();
     checkCircumference();
     render();
 
+
     localStorage.setItem('last_day_target', TGT_CAL);
     localStorage.setItem('last_day_bmr', BMR);
-}
+   
+} // <--- CHIUDI QUI LA FUNZIONE CALC
 
     // --- RENDER UI CORRETTO ---
     function render() {
@@ -2151,23 +2233,30 @@ localStorage.setItem('extra_today', 0);
         if (bankBtn) {
             bankBtn.innerText = Math.round(parseFloat(localStorage.getItem('calorie_bank')) || 0);
         }
-// Cerca il bottone del salvadanaio (quello con l'onclick useBankCalories)
+// --- Trova questo punto dentro function render() ---
+
+const isPremium = localStorage.getItem('app_premium_v1') === 'true';
+const isRecoveryActive = localStorage.getItem('recovery_active_today') === 'true';
+const bankVal = Math.round(getBankBalance());
+
 const allButtons = document.getElementsByTagName('button');
 for (let btn of allButtons) {
     if (btn.getAttribute('onclick') === 'useBankCalories()') {
-        const isRecoveryActive = localStorage.getItem('recovery_active_today') === 'true';
         if (isRecoveryActive) {
             // EFFETTO GHIACCIO ❄️
-            btn.style.background = "rgba(179, 229, 252, 0.3)"; // Azzurro ghiaccio trasparente
+            btn.style.background = "rgba(179, 229, 252, 0.3)";
             btn.style.borderColor = "#81d4fa";
             btn.style.color = "#0288d1";
-            btn.innerHTML = "<span>❄️</span> SALVADANAIO FROZEN: " + Math.round(getBankBalance()) + " kcal";
+            btn.innerHTML = `<span>❄️</span> SALVADANAIO FROZEN: <span id="bankDisplay">${bankVal}</span> kcal`;
         } else {
             // COLORE ORIGINALE (Arancio)
             btn.style.background = "rgba(255, 149, 0, 0.05)";
             btn.style.borderColor = "rgba(255, 149, 0, 0.4)";
             btn.style.color = "#ff9500";
-            btn.innerHTML = "<span>💰</span> SALVADANAIO: " + Math.round(getBankBalance()) + " kcal";
+            
+            // Qui cambiamo l'icona in base a isPremium
+            let icona = isPremium ? "💰" : "🔒";
+            btn.innerHTML = `<span id="bankLockIcon">${icona}</span> SALVADANAIO: <span id="bankDisplay">${bankVal}</span> kcal`;
         }
     }
 }
@@ -2288,86 +2377,78 @@ for (let btn of allButtons) {
     }
 
             function updatePredictionStatus() {
-        const statusBox = document.getElementById('predictionStatus');
-        const dateDisplay = document.getElementById('projectedDateDisplay');
-        
-        // 1. Verifica Dati Mancanti
-        if (!state.targetW || state.w <= 0 || state.targetW === state.w) { 
-            statusBox.innerHTML = "Inserisci Peso e Obiettivo nel Profilo per calcolare la data ⚙️"; 
-            statusBox.style.color="#666";
-            statusBox.style.background="white";
-            dateDisplay.innerText = "-- / --";
-            return; 
-        }
-    // --- CONTROLLO PREMIUM AGGIUNTO ---
-    if (localStorage.getItem('app_premium_v1') !== 'true') {
-        dateDisplay.innerText = "🔒 PRO";
-        statusBox.innerHTML = "Sblocca la data stimata del traguardo con la versione PRO su pharmo.it";
+    const statusBox = document.getElementById('predictionStatus');
+    const dateDisplay = document.getElementById('projectedDateDisplay');
+    const isPremium = localStorage.getItem('app_premium_v1') === 'true';
+
+    // BLOCCO DI SICUREZZA: Se non è PRO, ripristina il lucchetto e i testi originali
+    if (!isPremium) {
+        dateDisplay.innerHTML = "🔒 PRO"; 
+        statusBox.innerHTML = "Sblocca la <b>Data Traguardo</b> con la versione PRO su pharmo.it";
+        statusBox.style.background = "white"; // Mantiene il tuo stile
+        statusBox.style.color = "#555";
+        return; // Ferma l'esecuzione qui
+    }
+
+    // --- DA QUI IN POI CALCOLI ORIGINALI (Solo se PRO) ---
+    if (!state.targetW || state.w <= 0 || state.targetW === state.w) { 
+        statusBox.innerHTML = "Inserisci Peso e Obiettivo nel Profilo ⚙️"; 
+        dateDisplay.innerText = "-- / --";
         return; 
     }
 
-        // 2. Calcolo Differenza Peso e Calorie
-        let dailyDiff = 0;
-        let weightDiff = 0;
-        let isWeightLoss = state.w > state.targetW;
+    let dailyDiff = 0;
+    let weightDiff = 0;
+    let isWeightLoss = state.w > state.targetW;
 
-        if (isWeightLoss) {
-            dailyDiff = TDEE - TGT_CAL; // Deficit
-            weightDiff = state.w - state.targetW; // Kg da perdere
-        } else {
-            dailyDiff = TGT_CAL - TDEE; // Surplus
-            weightDiff = state.targetW - state.w; // Kg da prendere
-        }
-
-        // --- CASO 1: PIANO TROPPO LENTO ---
-        if (dailyDiff < 100) {
-            dateDisplay.innerText = "Piano Lento";
-            dateDisplay.style.fontSize = "1.2rem";
-            
-            if (isWeightLoss) {
-                statusBox.innerHTML = `⚠️ <b>Metabolismo Lento?</b><br>Il deficit è minimo. Usa <b>Pharmofit</b> per alzare il dispendio calorico a riposo e velocizzare tutto.`;
-            } else {
-                statusBox.innerHTML = `⚠️ <b>Crescita Lenta.</b><br>Non stai mangiando abbastanza per mettere muscoli.`;
-            }
-            statusBox.style.background="#fff5e6"; statusBox.style.color="#b35900";
-            return;
-        }
-
-        // 3. Calcolo Matematica Data
-        const totalKcalNeeded = weightDiff * 7700;
-        const daysNeeded = Math.ceil(totalKcalNeeded / dailyDiff);
-        
-        const today = new Date();
-        const futureDate = new Date(today);
-        futureDate.setDate(today.getDate() + daysNeeded);
-        
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        const dateString = futureDate.toLocaleDateString('it-IT', options);
-        
-        // Mostra Data
-        dateDisplay.innerText = dateString;
-        dateDisplay.style.fontSize = "1.6rem";
-
-        // 4. CONFRONTO E CONSIGLI PRODOTTI
-        if (state.targetD) {
-            const userTargetDate = new Date(state.targetD);
-            userTargetDate.setHours(0,0,0,0);
-            futureDate.setHours(0,0,0,0);
-
-            if (futureDate <= userTargetDate) {
-                // --- CASO 2: IN ANTICIPO (Tutto bene) ---
-                statusBox.innerHTML = `✅ <b>Ottimo! Arriverai in tempo.</b><br>Dimagrendo velocemente, la pelle potrebbe cedere. Usa <b>Pharmofiller</b> per mantenerla elastica e soda.`;
-                statusBox.style.background="#d4edda"; statusBox.style.color="#155724";
-            } else {
-                // --- CASO 3: IN RITARDO (Panico -> Vendita) ---
-                statusBox.innerHTML = `⚠️ <b>Sei in ritardo sulla tabella!</b><br>Arriverai il ${dateString} invece che alla tua scadenza.<br><br>🚀 <b>Strategia Recupero:</b><br>Combina <b>Pharmofit</b> (Brucia) + <b>Pharmodren</b> (Sgonfia) per accorciare i tempi.`;
-                statusBox.style.background="#fff3cd"; statusBox.style.color="#856404";
-            }
-        } else {
-            statusBox.innerHTML = "💡 Imposta una 'Data Obiettivo' nel profilo per vedere se sei in tempo.";
-            statusBox.style.background="#eef7ff"; statusBox.style.color="#004494";
-        }
+    if (isWeightLoss) {
+        dailyDiff = TDEE - TGT_CAL;
+        weightDiff = state.w - state.targetW;
+    } else {
+        dailyDiff = TGT_CAL - TDEE;
+        weightDiff = state.targetW - state.w;
     }
+
+    if (dailyDiff < 100) {
+        dateDisplay.innerText = "Piano Lento";
+        dateDisplay.style.fontSize = "1.2rem";
+        if (isWeightLoss) {
+            statusBox.innerHTML = `⚠️ <b>Metabolismo Lento?</b><br>Il deficit è minimo. Usa <b>Pharmofit</b> per alzare il dispendio calorico a riposo e velocizzare tutto.`;
+        } else {
+            statusBox.innerHTML = `⚠️ <b>Crescita Lenta.</b><br>Non stai mangiando abbastanza per mettere muscoli.`;
+        }
+        statusBox.style.background="#fff5e6"; statusBox.style.color="#b35900";
+        return;
+    }
+
+    const totalKcalNeeded = weightDiff * 7700;
+    const daysNeeded = Math.ceil(totalKcalNeeded / dailyDiff);
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + daysNeeded);
+    
+    const dateString = futureDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+    
+    dateDisplay.innerText = dateString;
+    dateDisplay.style.fontSize = "1.6rem";
+
+    if (state.targetD) {
+        const userTargetDate = new Date(state.targetD);
+        userTargetDate.setHours(0,0,0,0);
+        futureDate.setHours(0,0,0,0);
+
+        if (futureDate <= userTargetDate) {
+            statusBox.innerHTML = `✅ <b>Ottimo! Arriverai in tempo.</b><br>Dimagrendo velocemente, la pelle potrebbe cedere. Usa <b>Pharmofiller</b> per mantenerla elastica e soda.`;
+            statusBox.style.background="#d4edda"; statusBox.style.color="#155724";
+        } else {
+            statusBox.innerHTML = `⚠️ <b>Sei in ritardo sulla tabella!</b><br>Arriverai il ${dateString} invece che alla tua scadenza.<br><br>🚀 <b>Strategia Recupero:</b><br>Combina <b>Pharmofit</b> (Brucia) + <b>Pharmodren</b> (Sgonfia) per accorciare i tempi.`;
+            statusBox.style.background="#fff3cd"; statusBox.style.color="#856404";
+        }
+    } else {
+        statusBox.innerHTML = "💡 Imposta una 'Data Obiettivo' nel profilo per vedere se sei in tempo.";
+        statusBox.style.background="#eef7ff"; statusBox.style.color="#004494";
+    }
+}
+
 
         function rem(i) { 
         foods.splice(i, 1); 
@@ -2639,7 +2720,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (fMode) fMode.value = localStorage.getItem('fasting_mode') || 'none';
     if (fStart) fStart.value = localStorage.getItem('fasting_start') || '13:00';
     updateFastingUI();
-
+updateSugarUI();
     appReady = true; 
 });
 // --- FUNZIONE REPORT SETTIMANALE GRAFICO ---
@@ -2668,6 +2749,359 @@ function showWeeklyReport(manualBank) {
 
     // 6. Mostra il Modal
     document.getElementById('weeklyReportModal').style.display = 'flex';
+}
+// --- FUNZIONI BACKUP SEMPLIFICATO ---
+
+function openBackupUI() {
+    // 1. Controllo PRO
+    if (localStorage.getItem('app_premium_v1') !== 'true') {
+        alert("🔒 FUNZIONE PHARMOCLOUD\n\nIl salvataggio dati è riservato ai membri PRO/GOLD.\n\nSbloccalo per non perdere mai i tuoi progressi!");
+        return;
+    }
+    // 2. Apre Finestra
+    document.getElementById('simpleBackupModal').style.display = 'flex';
+    updateSugarFieldStatus()
+}
+function updateSugarUI() {
+    const isVIP = localStorage.getItem('app_vip_v1') === 'true';
+    const isPRO = localStorage.getItem('app_premium_v1') === 'true';
+    const input = document.getElementById('inSugar');
+    const badge = document.getElementById('sugarBadge');
+    const label = document.getElementById('sugarLabel');
+
+    if (isVIP) {
+        // --- LIVELLO VIP: TUTTO APERTO ---
+        input.style.filter = "none";
+        label.style.filter = "none";
+        label.innerText = "🍬 DI CUI ZUCCHERI (g)";
+        input.style.background = "#fff";
+        input.placeholder = "g";
+        badge.innerText = "💎 VIP ACCESS";
+        badge.style.background = "#e3f2fd";
+        badge.style.color = "#1976d2";
+        input.readOnly = false;
+    } 
+    else if (isPRO) {
+        // --- LIVELLO PRO: VEDE MA NON TOCCA ---
+        input.style.filter = "none";
+        label.style.filter = "none";
+        label.innerText = "🍬 DI CUI ZUCCHERI (g)";
+        input.style.background = "#f5f5f5";
+        input.placeholder = "🔒 VIP";
+        badge.innerText = "⭐ GOLD (Solo Vista)";
+        badge.style.background = "#fff8e1";
+        badge.style.color = "#ffa000";
+        input.readOnly = true;
+    } 
+    else {
+        // --- LIVELLO FREE: SFOCATO (BLUR) ---
+        input.style.filter = "blur(5px)";
+        label.style.filter = "blur(5px)";
+        label.innerText = "🔒 BLOCCATO"; 
+        input.style.background = "#eee";
+        badge.innerText = "🔒 BLOCCATO";
+        badge.style.background = "#f5f5f5";
+        badge.style.color = "#999";
+        input.readOnly = true;
+    }
+}
+
+
+function exportDataSimple() {
+    try {
+        // Prende tutto il database
+        const data = JSON.stringify(localStorage);
+        // Lo converte in un codice sicuro (Base64) per evitare errori di copia
+        const secureCode = btoa(unescape(encodeURIComponent(data)));
+        
+        // Copia negli appunti
+        const tempInput = document.createElement("textarea");
+        tempInput.value = secureCode;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+
+        showToast("✅ Codice Copiato! Incollalo dove vuoi.");
+        alert("✅ COPIA RIUSCITA!\n\nIl tuo 'Codice di Salvataggio' è ora negli appunti.\n\n👉 Vai sulle Note o su WhatsApp e fai 'Incolla' per salvarlo al sicuro.");
+    } catch (e) {
+        alert("Errore durante il salvataggio. Riprova.");
+    }
+}
+
+function importDataSimple() {
+    // Chiede il codice all'utente
+    const inputCode = prompt("Incolla qui il tuo Codice di Salvataggio:");
+    
+    if (inputCode) {
+        try {
+            // Decodifica il codice
+            const jsonString = decodeURIComponent(escape(atob(inputCode)));
+            const data = JSON.parse(jsonString);
+
+            // Conferma finale (perché cancella i dati attuali)
+            if(confirm("⚠️ ATTENZIONE: Stai per sovrascrivere i dati attuali con quelli del backup.\n\nL'operazione è irreversibile. Continuare?")) {
+                localStorage.clear(); // Pulisce
+                
+                // Ricarica i vecchi dati
+                Object.keys(data).forEach(key => {
+                    localStorage.setItem(key, data[key]);
+                });
+
+                alert("✅ RIPRISTINO COMPLETATO!\nBentornato/a. L'app si riavvierà ora.");
+                location.reload();
+            }
+        } catch (e) {
+            alert("❌ CODICE NON VALIDO\n\nSembra che il codice incollato sia incompleto o errato. Riprova.");
+        }
+    }
+}
+// --- DATABASE CONSIGLI COACH (ROTAZIONE) ---
+const tipsDB = {
+    fat: [
+        "🔴 <b>Allarme Grassi:</b> Hai superato il limite lipidico. Questo crea infiammazione silenziosa.<br>👉 <i>Rimedio:</i> Stasera usa <b>Pharmodren</b> per drenare le tossine.",
+        "🔴 <b>Troppi Lipidi:</b> La digestione rallenterà drasticamente.<br>👉 <i>Consiglio:</i> Bevi 2 bicchieri d'acqua subito e niente carboidrati a cena.",
+        "🔴 <b>Attenzione alle Calorie Nascoste:</b> L'olio è il nemico invisibile di oggi.<br>👉 <i>Azione:</i> Domani usa lo spray per condire o misura col cucchiaino.",
+        "🔴 <b>Reset Necessario:</b> L'eccesso di grassi blocca il dimagrimento.<br>👉 <i>Soluzione:</i> Domani fai una giornata Low-Fat per compensare."
+    ],
+    carb: [
+        "🟠 <b>Picco Glicemico:</b> Troppi carboidrati oggi. Rischio accumulo adiposo immediato.<br>👉 <i>Rimedio:</i> Assumi <b>Pharmofit</b> prima del prossimo pasto per bloccare l'assorbimento.",
+        "🟠 <b>Insulina Alta:</b> Il tuo corpo ha smesso di bruciare grassi.<br>👉 <i>Azione:</i> Fai una camminata veloce di 15 min dopo cena per abbassare la glicemia.",
+        "🟠 <b>Carbo-Load Eccessivo:</b> Se non ti alleni domani, questi zuccheri diventeranno grasso.<br>👉 <i>Consiglio:</i> Taglia la frutta e il pane per le prossime 12 ore.",
+        "🟠 <b>Stop Zuccheri:</b> Hai saturato le riserve di glicogeno.<br>👉 <i>Soluzione:</i> Prossimo pasto solo Proteine e Verdure verdi."
+    ],
+    prot: [
+        "🟡 <b>Carenza Proteica:</b> Sei sotto la soglia di protezione muscolare.<br>👉 <i>Consiglio:</i> Aggiungi uno shake proteico o 200g di albumi subito.",
+        "🟡 <b>Rischio Catabolismo:</b> Stai perdendo peso, ma potrebbe essere muscolo!<br>👉 <i>Azione:</i> Recupera con uno yogurt greco o fiocchi di latte pre-nanna.",
+        "🟡 <b>Fame Nervosa?</b> La mancanza di proteine causa attacchi di fame.<br>👉 <i>Soluzione:</i> Mangia un pezzo di parmigiano o affettato magro ora."
+    ],
+    perfect: [
+        "✅ <b>Giornata Perfetta!</b><br>I macro sono in armonia. Il metabolismo lavora al 100%.",
+        "✅ <b>Ottimo Lavoro!</b><br>Hai nutrito il muscolo senza ingrassare. Continua così!",
+        "✅ <b>Bilanciamento Top.</b><br>Sei un cecchino. Il tuo corpo ti ringrazierà domani mattina."
+    ]
+};
+
+function getRandomTip(category) {
+    const list = tipsDB[category];
+    return list[Math.floor(Math.random() * list.length)];
+}
+function updateSugarFieldStatus() {
+    const isVIP = localStorage.getItem('app_vip_v1') === 'true';
+    const isPRO = localStorage.getItem('app_premium_v1') === 'true';
+    const sugarInput = document.getElementById('inSugar');
+    const sugarBadge = document.getElementById('sugarBadge');
+    const container = document.getElementById('sugarContainer');
+
+    if (isVIP) {
+        // --- LIVELLO VIP: PIENO ACCESSO ---
+        sugarInput.style.filter = "none";
+        sugarInput.style.background = "#fff";
+        sugarInput.placeholder = "Inserisci g";
+        sugarBadge.innerText = "💎 VIP ACCESS";
+        sugarBadge.style.background = "#e3f2fd";
+        sugarBadge.style.color = "#1976d2";
+        sugarInput.readOnly = false;
+    } 
+    else if (isPRO) {
+        // --- LIVELLO PRO: VEDE MA È BLOCCATO ---
+        sugarInput.style.filter = "none"; // Non sfocato
+        sugarInput.style.background = "#f9f9f9";
+        sugarInput.placeholder = "🔒 BLOCCATO";
+        sugarBadge.innerText = "⭐ GOLD (Solo Vista)";
+        sugarBadge.style.background = "#fff8e1";
+        sugarBadge.style.color = "#ffa000";
+        sugarInput.readOnly = true;
+    } 
+    else {
+        // --- LIVELLO FREE: SFOCATO E MISTERIOSO ---
+        sugarInput.style.filter = "blur(4px)";
+        sugarInput.style.background = "#eee";
+        sugarInput.placeholder = "";
+        sugarBadge.innerText = "🔒 BLOCCATO";
+        sugarInput.readOnly = true;
+    }
+}
+
+// Gestione del Popup al click
+function handleSugarClick() {
+    const isVIP = localStorage.getItem('app_vip_v1') === 'true';
+    const isPRO = localStorage.getItem('app_premium_v1') === 'true';
+
+    if (isVIP) return; // Se è VIP non fare nulla, lascia scrivere
+
+    if (isPRO) {
+        alert("💎 FUNZIONE PLATINUM (VIP)\n\nSei un membro Gold, ma l'analisi dell'impatto insulinico degli zuccheri è riservata allo status VIP.\n\nSblocca il livello Platinum per attivare il calcolo dell'Infiammazione Cellulare!");
+    } else {
+        alert("🔒 FUNZIONE RISERVATA\n\nIl monitoraggio di questo parametro è fondamentale per non bloccare la lipolisi.\n\nQuesta funzione è disponibile solo per i membri PRO e VIP.");
+    }
+}
+
+// --- FUNZIONE 1: COACH AI 2.0 (PRO) ---
+function openCoach() {
+    if (localStorage.getItem('app_premium_v1') !== 'true') {
+        alert("🔒 COACH AI PRO\nAnalisi avanzata della composizione corporea riservata ai membri Gold.");
+        return;
+    }
+
+        const isVIP = localStorage.getItem('app_vip_v1') === 'true';
+    const fVal = parseInt(document.getElementById('fatTxt').innerText) || 0;
+    const pVal = parseInt(document.getElementById('protTxt').innerText) || 0;
+    const cVal = parseInt(document.getElementById('carbTxt').innerText) || 0;
+
+    // --- CORRETTO COSI ---
+    let curS = 0; 
+    foods.forEach(f => {
+        curS += (f.s || 0); 
+    });
+    // ---------------------
+
+    const ptMin = parseFloat(localStorage.getItem('pt_min_g')) || 0;
+    const hour = new Date().getHours();
+    const consumed = parseFloat(localStorage.getItem('last_day_total_consumed')) || 0;
+
+
+    let score = 100;
+    let advice = "";
+
+    // --- LOGICA VIP: IL COACH DIVENTA SPIETATO (BIO-HACKING) ---
+    if (isVIP) {
+        // 1. Errore Timing Carboidrati Notturni (Blocco GH)
+        if (hour >= 20 && cVal > (TGT_C * 0.5)) {
+            score -= 40;
+            advice = "🌙 <b>DISASTRO ORMONALE:</b> Hai caricato troppi carboidrati stasera. Questo picco insulinico bloccherà totalmente il GH notturno. Non brucerai grasso mentre dormi.<br>👉 <i>Rimedio:</i> Domani mattina <b>Pharmodren</b> a stomaco vuoto per drenare i liquidi ritenvuti.";
+        }
+        // 2. Mix Infiammazione (Grassi + Carbo alti)
+        else if (fVal > (TGT_F * 0.8) && cVal > (TGT_C * 0.8)) {
+            score -= 35;
+            advice = "🚨 <b>MIX INFIAMMATORIO:</b> Grassi e Carboidrati alti contemporaneamente. È il modo più veloce per sporcare la forma fisica e infiammare i tessuti.<br>👉 <i>Azione:</i> Prendi subito <b>Pharmolain</b> per processare l'eccesso e ridurre il gonfiore.";
+        }
+        // 3. Blocco Lipolisi Mattutina
+        else if (hour < 11 && cVal > 30) {
+            score -= 20;
+            advice = "🔥 <b>LIPOLISI INTERROTTA:</b> Hai inserito troppi zuccheri quando il cortisolo era alto. Hai spento la tua fornace naturale.<br>👉 <i>Prossima volta:</i> Usa <b>Pharmofit</b> prima di colazione per gestire meglio questo picco.";
+        }
+    } 
+
+    // --- SE NON È VIP O SE I CONTROLLI VIP SONO PASSATI, USA LOGICA STANDARD ---
+    if (advice === "") {
+        if (cVal > (pVal * 2.5) && cVal > 50) {
+            score -= 25;
+            advice = "⚠️ <b>Sbilanciamento Glicemico:</b> Troppi carboidrati rispetto alle proteine. Rischi accumulo adiposo.<br>👉 <i>Rimedia:</i> Prossimo pasto solo proteine magre.";
+        } 
+        else if (pVal < (ptMin * 0.5) && hour > 15) {
+            score -= 20;
+            advice = "📉 <b>Allarme Catabolismo:</b> Proteine troppo basse per proteggere i tuoi muscoli.<br>👉 <i>Azione:</i> Inserisci subito uno spuntino proteico o albumi.";
+        }
+        else if (consumed > 0) {
+            advice = getRandomTip('perfect');
+            if (!isVIP) {
+    advice += "<br><br>💎 <b>UPGRADE PLATINUM:</b> Sblocca l'analisi del <i>Bio-Timing</i>. Il Coach analizzerà l'orario dei tuoi pasti per dirti se stai bloccando il GH notturno o la Lipolisi mattutina.";
+}
+        } else {
+            advice = "☕ Inizia a loggare i tuoi pasti per ricevere l'analisi del Coach!";
+        }
+    }
+
+    // Calcolo Voto (Stessi parametri tuoi)
+    let grade = "A"; let color = "#34c759"; let sub = "Eccellente";
+    if (score < 90) { grade = "B"; color = "#ffcc00"; sub = "Buono"; }
+    if (score < 75) { grade = "C"; color = "#ff9500"; sub = "Migliorabile"; }
+    if (score < 60) { grade = "D"; color = "#ff3b30"; sub = "Incoerente"; }
+
+    document.getElementById('coachGrade').innerText = grade;
+    document.getElementById('coachGrade').style.color = color;
+    document.getElementById('coachSubtitle').innerText = sub;
+    document.getElementById('coachTipsBox').innerHTML = advice;
+    document.getElementById('coachModal').style.display = 'flex';
+}
+
+
+// --- FUNZIONE 2: CRONO-GENETICA 2.0 (VIP) ---
+function openCrono() {
+    if (localStorage.getItem('app_vip_v1') !== 'true') {
+        alert("💎 FUNZIONE BIO-TIMING\n\nIl bio-hacking temporale è riservato ai membri PLATINUM/VIP.");
+        return;
+    }
+    renderCronoTimeline();
+    document.getElementById('cronoModal').style.display = 'flex';
+}
+
+function renderCronoTimeline() {
+    const timeStr = document.getElementById('wakeUpTime').value;
+    const [h, m] = timeStr.split(':').map(Number);
+    const wakeMins = h * 60 + m;
+    const oraAttuale = new Date();
+    const minutiAdesso = oraAttuale.getHours() * 60 + oraAttuale.getMinutes();
+
+    const addTime = (mins) => {
+        let tot = wakeMins + mins;
+        let nh = Math.floor(tot / 60) % 24;
+        let nm = tot % 60;
+        return { string: `${nh.toString().padStart(2,'0')}:${nm.toString().padStart(2,'0')}`, totalMins: tot % 1440 };
+    };
+
+    const phase1 = addTime(30); const phase2 = addTime(300); const phase3 = addTime(720);
+
+    const getActiveStyle = (start, end) => {
+        let active = (end > start) ? (minutiAdesso >= start && minutiAdesso < end) : (minutiAdesso >= start || minutiAdesso < end);
+        return active ? "background: rgba(255,255,255,0.07); border-radius:12px; padding:15px; border-left-width: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" : "opacity: 0.5; padding: 10px 15px;";
+    };
+
+    const tC = cronoDB.cortisolo[Math.floor(Math.random() * cronoDB.cortisolo.length)];
+    const tI = cronoDB.insulina[Math.floor(Math.random() * cronoDB.insulina.length)];
+    const tG = cronoDB.gh[Math.floor(Math.random() * cronoDB.gh.length)];
+
+    const html = `
+        <div style="border-left: 2px solid #ff3b30; margin-bottom: 25px; position:relative; transition:0.3s; ${getActiveStyle(phase1.totalMins, phase2.totalMins)}">
+            <div style="position:absolute; left:-7px; top:15px; width:12px; height:12px; background:#ff3b30; border-radius:50%; box-shadow: 0 0 12px #ff3b30;"></div>
+            <div style="font-size:1rem; color:#ff3b30; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <span>🔥</span> ${phase1.string} • CORTISOLO
+            </div>
+            <div style="font-size:0.85rem; color:#ccc; margin-top:8px; line-height:1.4;">
+                ${tC}<br>
+                <span style="color:#ff3b30; font-weight:700;">⛔ NO ZUCCHERI.</span>
+            </div>
+        </div>
+
+        <div style="border-left: 2px solid #FFD700; margin-bottom: 25px; position:relative; transition:0.3s; ${getActiveStyle(phase2.totalMins, phase3.totalMins)}">
+            <div style="position:absolute; left:-7px; top:15px; width:12px; height:12px; background:#FFD700; border-radius:50%; box-shadow: 0 0 12px #FFD700;"></div>
+            <div style="font-size:1rem; color:#FFD700; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <span>🍚</span> ${phase2.string} • INSULINA
+            </div>
+            <div style="font-size:0.85rem; color:#ccc; margin-top:8px; line-height:1.4;">
+                ${tI}<br>
+                <span style="color:#FFD700; font-weight:700;">✅ FOCUS: Carboidrati complessi.</span>
+            </div>
+        </div>
+
+        <div style="border-left: 2px solid #00d4ff; position:relative; transition:0.3s; ${getActiveStyle(phase3.totalMins, phase1.totalMins)}">
+            <div style="position:absolute; left:-7px; top:15px; width:12px; height:12px; background:#00d4ff; border-radius:50%; box-shadow: 0 0 12px #00d4ff;"></div>
+            <div style="font-size:1rem; color:#00d4ff; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <span>🌙</span> ${phase3.string} • FASE GH
+            </div>
+            <div style="font-size:0.85rem; color:#ccc; margin-top:8px; line-height:1.4;">
+                ${tG}<br>
+                <span style="color:#00d4ff; font-weight:700;">⛔ STOP CARBOIDRATI.</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('cronoTimeline').innerHTML = html;
+}
+
+function setWakeUpNow() {
+    const ora = new Date();
+    const h = ora.getHours().toString().padStart(2, '0');
+    const m = ora.getMinutes().toString().padStart(2, '0');
+    
+    document.getElementById('wakeUpTime').value = `${h}:${m}`;
+    
+    // Feedback visivo
+    showToast("✅ Sveglia impostata alle " + h + ":" + m);
+    
+    // Ricalcola tutto
+    renderCronoTimeline();
 }
 
 </script>
@@ -2715,6 +3149,172 @@ function showWeeklyReport(manualBank) {
         </div>
     </div>
 </div>
+<div id="simpleBackupModal" class="modal-overlay" style="display:none; z-index:100000;">
+    <div class="modal-box" style="text-align: center;">
+        <div class="modal-title" style="color:#007aff; font-size:1.3rem;">☁️ PharmoCloud</div>
+        <p style="font-size:0.9rem; color:#555; margin-bottom:20px;">
+            Salva la tua configurazione e i tuoi progressi al sicuro, oppure trasferiscili su un altro telefono.
+        </p>
 
+        <div style="background:#f0f4f8; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #dbeafe;">
+            <div style="font-size:0.8rem; font-weight:700; color:#004494; margin-bottom:8px; text-transform:uppercase;">1. Salva i tuoi dati</div>
+            <button onclick="exportDataSimple()" style="width:100%; background:#007aff; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                📋 Copia Codice di Salvataggio
+            </button>
+            <div style="font-size:0.7rem; color:#888; margin-top:5px;">Clicca, poi incollalo nelle Note o su WhatsApp.</div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin:15px 0; opacity:0.3;">
+            <div style="height:1px; background:#000; flex:1;"></div>
+            <span style="font-size:0.8rem;">OPPURE</span>
+            <div style="height:1px; background:#000; flex:1;"></div>
+        </div>
+
+        <div style="background:#f9fff9; padding:15px; border-radius:12px; border:1px solid #c3e6cb;">
+            <div style="font-size:0.8rem; font-weight:700; color:#155724; margin-bottom:8px; text-transform:uppercase;">2. Recupera i dati</div>
+            <button onclick="importDataSimple()" style="width:100%; background:#34c759; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                📥 Incolla e Ripristina
+            </button>
+        </div>
+
+        <button onclick="document.getElementById('simpleBackupModal').style.display='none'" style="margin-top:20px; background:transparent; color:#888; border:none; width:100%; padding:10px; cursor:pointer;">Chiudi</button>
+    </div>
+</div>
+<div id="coachModal" class="modal-overlay" style="display:none; z-index:100000;">
+    <div class="modal-box" style="border-top: 6px solid #FFD700; max-width: 320px;">
+        <div class="modal-title">🧠 Coach Pharmo</div>
+        
+        <div style="text-align:center; margin: 15px 0;">
+            <div id="coachGrade" style="font-size: 5rem; font-weight: 800; line-height: 0.9;">A</div>
+            <div id="coachSubtitle" style="font-size: 0.9rem; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Eccellente</div>
+        </div>
+
+        <div id="coachTipsBox" style="background: #f8f9fa; border-radius: 12px; padding: 18px; text-align: left; font-size: 0.9rem; line-height: 1.5; color: #333; border: 1px solid #eee; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);">
+            Analisi...
+        </div>
+
+        <button onclick="document.getElementById('coachModal').style.display='none'" style="margin-top:20px; width:100%; background:#007aff; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; cursor:pointer;">Ricevuto</button>
+    </div>
+</div>
+
+<div id="cronoModal" class="modal-overlay" style="display:none; z-index:100000;">
+    <div class="modal-box" style="background: #1c1c1e; color: white; border: 1px solid #333; max-width: 350px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <div class="modal-title" style="color:#00d4ff; margin:0; font-size: 1.2rem;">🧬 Bio-Timing</div>
+            <span style="background: linear-gradient(135deg, #00d4ff, #007aff); color:white; font-size:0.65rem; font-weight:800; padding:4px 8px; border-radius:4px;">VIP PLATINUM</span>
+        </div>
+        <p style="font-size:0.8rem; color:#888; margin-top:5px; margin-bottom:20px;">Ottimizzazione ormonale basata sul risveglio.</p>
+        
+        <div style="background:#2c2c2e; padding:15px; border-radius:14px; margin-bottom:25px; border: 1px solid #444;">
+            <label style="color:#aaa; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block; margin-bottom:10px;">Configura Risveglio</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input type="time" id="wakeUpTime" value="07:00" onchange="renderCronoTimeline()" 
+                       style="background:#000; color:#fff; border:1px solid #555; padding:10px; border-radius:10px; font-weight:bold; font-size:1.1rem; flex:1;">
+                <button onclick="setWakeUpNow()" 
+                        style="background:#00d4ff; color:black; border:none; padding:10px 15px; border-radius:10px; font-weight:800; font-size:0.7rem; cursor:pointer; line-height:1.2; flex:1;">
+                    ☀️ SVEGLIATO<br>ADESSO
+                </button>
+            </div>
+        </div>
+
+        <div id="cronoTimeline"></div>
+
+        <button onclick="document.getElementById('cronoModal').style.display='none'" style="margin-top:20px; width:100%; background:transparent; border:1px solid #555; color:#aaa; padding:12px; border-radius:12px; cursor:pointer;">Chiudi Timeline</button>
+    </div>
+</div>
+
+<script>
+// AGGIUNGI QUESTO DATABASE ALL'INIZIO DEL TUO BLOCCO <script> SE NON C'È GIÀ
+const cronoDB = {
+    cortisolo: [
+        "🔥 <b>Fase Lipolitica:</b> Il corpo è una fornace. ✅ Carbo complessi (Avena/Integrali) OK. ⛔ NO ZUCCHERI semplici o aggiunti per non bloccare il dimagrimento.",
+        "🔥 <b>Stato di Allerta:</b> Ormoni al massimo. Usa proteine magre e <b>Pharmofit</b>. Evita zuccheri nel caffè o succhi: causano crash insulinico.",
+        "🔥 <b>Focus Lipolisi:</b> In questa finestra il tuo corpo preferisce usare i grassi come carburante. Non spegnere la fornace con dolci o farine raffinate."
+    ],
+    insulina: [
+        "🍚 <b>Finestra di Carico:</b> Le tue cellule sono pronte. È il momento ideale per i carboidrati principali (Pasta, Riso, Cereali). I nutrienti vanno ai muscoli.",
+        "🍚 <b>Picco Metabolico:</b> Massima sensibilità insulinica. Il cibo va nel muscolo, non nel grasso. Usa <b>Pharmolain</b> per ottimizzare l'assorbimento.",
+        "🍚 <b>Ricarica Glicogeno:</b> Ora i carboidrati servono a darti energia senza appesantirti. È il momento del pasto più abbondante della giornata."
+    ],
+    gh: [
+        "🌙 <b>Fase di Riparazione:</b> ⛔ STOP CARBOIDRATI TOTALI. Solo proteine e fibre per non bloccare il GH (Ormone del dimagrimento) notturno.",
+        "🌙 <b>Deep Sleep Prep:</b> Meno insulina circola stasera, più grasso brucerai mentre dormi. <b>Pharmodren</b> consigliato per sgonfiare i tessuti.",
+        "🌙 <b>Reset Notturno:</b> Il corpo si ripara ora. Niente zuccheri o amidi stasera per permettere al fegato di disintossicarsi e attivare il GH."
+    ]
+};
+
+function showDataLockPopup() {
+    const isPremium = localStorage.getItem('app_premium_v1') === 'true';
+    if (!isPremium) {
+        alert("🔒 DATA BLOCCATA\n\nFUNZIONE PRO \n\nLa gestione della Data Traguardo è riservata ai membri PRO. Sbloccala con il tuo codice Pharmo che trovi dentro il pacco.");
+    }
+}
+
+</script>
+<!--  PANNELLO DI TEST -----------------⭕️⭕️⭕️⭕️⭕️⭕️      -->
+
+<div style="position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.95); z-index: 9999999; padding: 10px 5px 30px 5px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; border-top: 3px solid #00d4ff; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); font-family: sans-serif;">
+    
+    <div style="width: 100%; text-align: center; color: #aaa; font-size: 9px; margin-bottom: 3px;">--- LIVELLO UTENTE ---</div>
+    
+    <button onclick="localStorage.clear(); location.reload();" 
+            style="background: #ff3b30; color: white; border:none; border-radius:4px; padding: 6px 8px; font-weight:bold; font-size: 10px; flex: 1;">
+            🗑️ FREE
+    </button>
+    
+    <button onclick="localStorage.setItem('app_unlocked_v1','true'); localStorage.setItem('last_unlock_timestamp', Date.now()); localStorage.setItem('app_premium_v1','true'); localStorage.removeItem('app_vip_v1'); location.reload();" 
+            style="background: #FFD700; color: black; border:none; border-radius:4px; padding: 6px 8px; font-weight:bold; font-size: 10px; flex: 1;">
+            ⭐ GOLD
+    </button>
+
+    <button onclick="localStorage.setItem('app_unlocked_v1','true'); localStorage.setItem('last_unlock_timestamp', Date.now()); localStorage.setItem('app_premium_v1','true'); localStorage.setItem('app_vip_v1','true'); location.reload();" 
+            style="background: #e0f7fa; color: #006064; border:1px solid #00bcd4; border-radius:4px; padding: 6px 8px; font-weight:bold; font-size: 10px; flex: 1;">
+            💎 VIP
+    </button>
+
+    <div style="width: 100%; text-align: center; color: #aaa; font-size: 9px; margin: 3px 0;">--- FUNZIONI & REPORT ---</div>
+
+        <button onclick="showWeeklyReport(3500);" 
+            style="background: #28a745; color: white; border:none; border-radius:4px; padding: 6px 8px; font-size: 10px; flex: 1;">
+            📅 REPORT GUI
+    </button>
+
+
+    <button onclick="localStorage.setItem('calorie_bank', 1000); location.reload();" 
+            style="background: #ff9500; color: white; border:none; border-radius:4px; padding: 6px 8px; font-size: 10px; flex: 1;">
+            💰 BANK
+    </button>
+<button onclick="localStorage.setItem('calorie_bank', 0); location.reload();" 
+        style="background: #555; color: white; border:none; border-radius:4px; padding: 6px 8px; font-size: 10px; flex: 1;">
+        💸 SVUOTA
+</button>
+
+    <button onclick="localStorage.removeItem('last_recovery_timestamp'); localStorage.removeItem('recovery_active_today'); alert('Timer Recovery azzerato!'); location.reload();" 
+            style="background: #17a2b8; color: white; border:none; border-radius:4px; padding: 6px 8px; font-size: 10px; flex: 1;">
+            ⚡ NO TIMER
+    </button>
+
+    <div style="width: 100%; text-align: center; color: #aaa; font-size: 9px; margin: 3px 0;">--- PROGRESSI & SICUREZZA ---</div>
+
+    <button onclick="localStorage.setItem('streak_days', parseInt(localStorage.getItem('streak_days')||0)+7); location.reload();" 
+            style="background: #6f42c1; color: white; border:none; border-radius:4px; padding: 6px 8px; font-size: 10px; flex: 1;">
+            🔥 +7 GG
+    </button>
+
+    <button onclick="localStorage.setItem('water_count', 8); localStorage.setItem('water_streak_days', 2); location.reload();" 
+            style="background: #007aff; color: white; border:none; border-radius:4px; padding: 6px 8px; font-size: 10px; flex: 1;">
+            💧 ACQUA
+    </button>
+
+    <button onclick="document.querySelectorAll('.modal-overlay, #authGate').forEach(el => el.style.display='none');" 
+            style="background: #333; color: white; border:1px solid white; border-radius:4px; padding: 6px 8px; font-size: 10px; flex: 2;">
+            🔓 SBLOCCA SCHERMO
+    </button>
+    
+    <button onclick="this.parentElement.style.display='none'" 
+            style="background: black; color: white; border:1px solid #555; border-radius:4px; padding: 6px 8px; font-size: 10px;">
+            X
+    </button>
+</div>
 </body>
 </html>
